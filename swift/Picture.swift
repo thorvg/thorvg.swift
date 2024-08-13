@@ -6,12 +6,7 @@ import thorvg
 class Picture {
     /// Supported MIME types for loading picture data.
     enum MimeType: String {
-        case svg = "svg"
         case lottie = "lottie"
-        case jpg = "jpg"
-        case jpeg = "jpeg"
-        case svgxml = "svg+xml"
-        case png = "png"
     }
 
     /// Pointer to the underlying ThorVG picture object.

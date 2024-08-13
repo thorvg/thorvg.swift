@@ -46,7 +46,7 @@ public class LottieRenderer {
         contentRect: CGRect,
         rotation: Double = 0.0
     ) throws {
-        guard frameIndex < lottie.numberOfFrames, frameIndex >= 0 else {
+        guard frameIndex <= lottie.numberOfFrames, frameIndex >= 0 else {
             throw ThorVGError.frameIndexOutOfRange
         }
 

@@ -32,6 +32,7 @@ let package = Package(
                 "loaders/lottie/jerryscript",
                 "renderer/gl_engine",
                 "renderer/wg_engine",
+                "savers/gif",
                 "tools",
             ],
             publicHeadersPath: "bindings/capi",
@@ -48,7 +49,6 @@ let package = Package(
                 .headerSearchPath("loaders/tvg"),
                 .headerSearchPath("renderer"),
                 .headerSearchPath("renderer/sw_engine"),
-                .headerSearchPath("savers/gif"),
             ]
         ),
         .testTarget(

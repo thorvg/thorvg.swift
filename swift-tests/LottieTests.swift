@@ -25,7 +25,7 @@ final class LottieTests: XCTestCase {
 
             XCTFail("Expected failedToLoadFromPath error to be thrown, but no error was thrown.")
         } catch {
-            XCTAssertEqual(error as? ThorVGError, .failedToLoadFromPath)
+            XCTAssertEqual(error as? LottieRenderingError, .failedToLoadFromPath)
         }
     }
 
@@ -42,7 +42,7 @@ final class LottieTests: XCTestCase {
 
             XCTFail("Expected failedToLoadFromString error to be thrown, but no error was thrown.")
         } catch {
-            XCTAssertEqual(error as? ThorVGError, .failedToLoadFromDataString)
+            XCTAssertEqual(error as? LottieRenderingError, .failedToLoadFromDataString)
         }
     }
 }

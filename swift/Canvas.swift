@@ -36,7 +36,7 @@ class Canvas {
     /// Draws the contents of the canvas into the buffer.
     func draw() throws {
         guard tvg_canvas_draw(pointer) == TVG_RESULT_SUCCESS else {
-            throw ThorVGError.failedToDrawFrame
+            throw LottieRenderingError.failedToDrawFrame
         }
 
         tvg_canvas_sync(pointer)

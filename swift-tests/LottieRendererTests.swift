@@ -49,7 +49,7 @@ final class LottieRendererTests: XCTestCase {
 
             XCTFail("Expected frameIndexOutOfRange error to be thrown, but no error was thrown.")
         } catch {
-            XCTAssertEqual(error as? ThorVGError, .frameIndexOutOfRange)
+            XCTAssertEqual(error as? LottieRenderingError, .frameIndexOutOfRange)
         }
     }
 
@@ -58,11 +58,11 @@ final class LottieRendererTests: XCTestCase {
         let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         do {
-            try renderer.render(frameIndex: 180, contentRect: contentRect)
+            try renderer.render(frameIndex: 181, contentRect: contentRect)
 
             XCTFail("Expected frameIndexOutOfRange error to be thrown, but no error was thrown.")
         } catch {
-            XCTAssertEqual(error as? ThorVGError, .frameIndexOutOfRange)
+            XCTAssertEqual(error as? LottieRenderingError, .frameIndexOutOfRange)
         }
     }
 }

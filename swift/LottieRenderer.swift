@@ -47,7 +47,7 @@ public class LottieRenderer {
         rotation: Double = 0.0
     ) throws {
         guard frameIndex <= lottie.numberOfFrames, frameIndex >= 0 else {
-            throw ThorVGError.frameIndexOutOfRange
+            throw LottieRenderingError.frameIndexOutOfRange
         }
 
         lottie.animation.setFrame(frameIndex)

@@ -31,7 +31,7 @@ class Picture {
     /// Loads a picture from a given file path.
     func load(fromPath path: String) throws {
         guard tvg_picture_load(pointer, path) == TVG_RESULT_SUCCESS else {
-            throw ThorVGError.failedToLoadFromPath
+            throw LottieRenderingError.failedToLoadFromPath
         }
     }
 
@@ -42,7 +42,7 @@ class Picture {
         guard let cString = string.cString(using: .utf8),
               tvg_picture_load_data(pointer, cString, UInt32(cString.count), mimeType.rawValue, false) == TVG_RESULT_SUCCESS
         else {
-            throw ThorVGError.failedToLoadFromDataString
+            throw LottieRenderingError.failedToLoadFromDataString
         }
     }
 

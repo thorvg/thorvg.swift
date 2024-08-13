@@ -1,5 +1,5 @@
-/// Errors that can occur while working with ThorVG.
-public enum ThorVGError: Error {
+/// Errors that can occur while rendering Lottie content.
+public enum LottieRenderingError: Error {
     case frameIndexOutOfRange
     case failedToDrawFrame
     case failedToLoadFromDataString

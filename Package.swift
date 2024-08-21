@@ -49,6 +49,9 @@ let package = Package(
                 .headerSearchPath("loaders/tvg"),
                 .headerSearchPath("renderer"),
                 .headerSearchPath("renderer/sw_engine"),
+            ],
+            linkerSettings: [
+                .linkedLibrary("pthread")
             ]
         ),
         .testTarget(

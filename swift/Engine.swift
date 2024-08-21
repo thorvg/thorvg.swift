@@ -10,7 +10,7 @@ public class Engine {
     /// Initializes the engine with a specified number of threads.
     ///
     /// Note: This defaults the number of threads to 0, which tells ThorVG to run on the main thread.
-    private init(numberOfThreads: Int = 0) {
+    public init(numberOfThreads: Int = 0) {
         tvg_engine_init(TVG_ENGINE_SW, UInt32(numberOfThreads))
     }
 }

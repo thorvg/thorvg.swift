@@ -10,17 +10,18 @@ class LottieSnapshotTests: XCTestCase {
     let contentRect = CGRect(x: 0, y: 0, width: 1024, height: 1024)
     let pixelFormat = PixelFormat.argb
 
-    var lottie: Lottie!
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        let url = Bundle.module.url(forResource: "test", withExtension: "json")!
-        lottie = try Lottie(path: url.path)
+    var lottie: Lottie {
+        get throws {
+            guard let url = Bundle.module.url(forResource: "test", withExtension: "json") else {
+                preconditionFailure("Required resource for testing not found.")
+            }
+            return try Lottie(path: url.path)
+        }
     }
 
     func testRenderFrame_WhenValidBufferAndSize_ReturnsCorrectImageSnapshot() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
@@ -36,7 +37,7 @@ class LottieSnapshotTests: XCTestCase {
         let size = CGSize(width: 2048, height: 2048)
         let contentRect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
@@ -52,7 +53,7 @@ class LottieSnapshotTests: XCTestCase {
         let size = CGSize(width: 512, height: 512)
         let contentRect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
@@ -66,7 +67,7 @@ class LottieSnapshotTests: XCTestCase {
 
     func testRenderFrame_WhenCropped_ReturnsCroppedAndScaledImageSnapshot() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         let crop = CGRect(x: 0, y: 0, width: 512, height: 512)
 
@@ -82,7 +83,7 @@ class LottieSnapshotTests: XCTestCase {
 
     func testRenderFrame_WhenCroppedWithNonUniformRectangle_ReturnsCroppedAndScaledImageSnapshot() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         let crop = CGRect(x: 0, y: 0, width: 750, height: 1000)
 
@@ -98,7 +99,7 @@ class LottieSnapshotTests: XCTestCase {
 
     func testRenderFrame_WhenCenterCropped_ReturnsCroppedAndScaledImageSnapshot() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         let crop = CGRect(x: 384, y: 384, width: 256, height: 256)
 
@@ -114,7 +115,7 @@ class LottieSnapshotTests: XCTestCase {
 
     func testRenderFrame_WhenCenterCroppedAndRotated_ReturnsCroppedScaledAndRotatedImageSnapshot() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         let crop = CGRect(x: 384, y: 384, width: 256, height: 256)
 
@@ -130,7 +131,7 @@ class LottieSnapshotTests: XCTestCase {
 
     func testRenderFrame_WhenRotated_ReturnsRotatedImageSnapshot() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         let rotation = 90.0
 
@@ -146,7 +147,7 @@ class LottieSnapshotTests: XCTestCase {
 
     func testRenderFrame_WhenCroppedAndRotated_ReturnsCroppedAndRotatedImageSnapshot() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         let crop = CGRect(x: 0, y: 0, width: 512, height: 512)
         let rotation = 90.0
@@ -167,7 +168,7 @@ class LottieSnapshotTests: XCTestCase {
         let rotation = 90.0
 
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         try renderer.render(frameIndex: 0, contentRect: crop, rotation: rotation)
 
@@ -182,7 +183,7 @@ class LottieSnapshotTests: XCTestCase {
     func testRenderFrame_WhenUsingABGRPixelFormat_ReturnsImageWithCorrectPixelValues() throws {
         let pixelFormat = PixelFormat.abgr
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 

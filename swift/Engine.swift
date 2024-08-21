@@ -5,7 +5,7 @@ import thorvg
 /// A Swift wrapper for managing ThorVG's engine initialization and termination.
 public class Engine {
     /// A default instance of `Engine`, running on the main thread.
-    public static let `default` = Engine()
+    public static let main = Engine()
 
     /// Initializes the engine with a specified number of threads.
     ///

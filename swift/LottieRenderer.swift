@@ -21,7 +21,7 @@ public class LottieRenderer {
     ///   - pixelFormat: The pixel format defining the format of the color components for each pixel value.
     public init(
         _ lottie: Lottie,
-        engine: Engine = .default,
+        engine: Engine = .main,
         size: CGSize,
         buffer: Buffer,
         stride: Int,

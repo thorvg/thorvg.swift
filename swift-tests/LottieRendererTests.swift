@@ -32,7 +32,7 @@ final class LottieRendererTests: XCTestCase {
         let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         do {
-            for index in 0 ... lottie.numberOfFrames {
+            for index in stride(from: 0, through: lottie.numberOfFrames, by: 1.0) {
                 try renderer.render(frameIndex: index, contentRect: contentRect)
             }
         } catch {

@@ -42,7 +42,7 @@ public class LottieRenderer {
     ///   - contentRect: Specifies the area of the content to be rendered. This rectangle defines the portion of the animation that should be visible in the final rendered frame, scaled to fit the canvas size.
     ///   - rotation: Rotation angle in degrees to apply to the renderered frame.
     public func render(
-        frameIndex: Int,
+        frameIndex: Float,
         contentRect: CGRect,
         rotation: Double = 0.0
     ) throws {

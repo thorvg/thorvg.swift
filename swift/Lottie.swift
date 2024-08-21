@@ -6,7 +6,7 @@ import thorvg
 /// Object used to load and render Lottie frames.
 public class Lottie {
     /// The number of frames in the Lottie animation.
-    public let numberOfFrames: Int
+    public let numberOfFrames: Float
 
     /// The duration of the Lottie animation.
     public let duration: CMTime

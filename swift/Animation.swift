@@ -27,15 +27,15 @@ class Animation {
     }
 
     /// Returns the total number of frames in the animation.
-    func getNumberOfFrames() -> Int {
+    func getNumberOfFrames() -> Float {
         var numberOfFrames: Float = 0
         tvg_animation_get_total_frame(pointer, &numberOfFrames)
-        return Int(numberOfFrames)
+        return numberOfFrames
     }
 
     /// Sets the current frame of the animation to the specified frame number.
-    func setFrame(_ frame: Int) {
-        tvg_animation_set_frame(pointer, Float(frame))
+    func setFrame(_ frame: Float) {
+        tvg_animation_set_frame(pointer, frame)
     }
 
     /// Retrieves the current `Picture` instance associated with the animation.

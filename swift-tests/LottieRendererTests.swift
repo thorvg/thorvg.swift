@@ -9,17 +9,18 @@ final class LottieRendererTests: XCTestCase {
     let contentRect = CGRect(x: 0, y: 0, width: 1024, height: 1024)
     let pixelFormat = PixelFormat.argb
 
-    var lottie: Lottie!
-
-    override func setUpWithError() throws {
-        try super.setUpWithError()
-        let url = Bundle.module.url(forResource: "test", withExtension: "json")!
-        lottie = try Lottie(path: url.path)
+    var lottie: Lottie {
+        get throws {
+            guard let url = Bundle.module.url(forResource: "test", withExtension: "json") else {
+                preconditionFailure("Required resource for testing not found.")
+            }
+            return try Lottie(path: url.path)
+        }
     }
 
     func testRender_WithValidFrameIndex_BufferPopulatedWithContent() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
@@ -29,10 +30,10 @@ final class LottieRendererTests: XCTestCase {
 
     func testRender_WithAllFrames_Succeeds() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         do {
-            for index in stride(from: 0, through: lottie.numberOfFrames, by: 1.0) {
+            for index in stride(from: 0, through: try lottie.numberOfFrames, by: 1.0) {
                 try renderer.render(frameIndex: index, contentRect: contentRect)
             }
         } catch {
@@ -42,7 +43,7 @@ final class LottieRendererTests: XCTestCase {
 
     func testRenderFrame_WithFrameIndexBelowBounds_ThrowsError() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         do {
             try renderer.render(frameIndex: -1, contentRect: contentRect)
@@ -55,7 +56,7 @@ final class LottieRendererTests: XCTestCase {
 
     func testRenderFrame_WithFrameIndexAboveBounds_ThrowsError() throws {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        let renderer = LottieRenderer(lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
+        let renderer = LottieRenderer(try lottie, size: size, buffer: &buffer, stride: Int(size.width), pixelFormat: pixelFormat)
 
         do {
             try renderer.render(frameIndex: 181, contentRect: contentRect)

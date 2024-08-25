@@ -19,7 +19,7 @@ let package = Package(
         .target(
             name: "ThorVGSwift",
             dependencies: ["thorvg"],
-            path: "Sources/swift"
+            path: "swift"
         ),
         .target(
             name: "thorvg",
@@ -84,7 +84,7 @@ let package = Package(
                 "ThorVGSwift",
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],
-            path: "Sources/swift-tests",
+            path: "swift-tests",
             exclude: ["SnapshotTests/__Snapshots__"],
             resources: [.process("Resources")]
         ),

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the source and destination paths
-SOURCE_PATH="../Config/config.h"
-DESTINATION_DIR="../thorvg/src/renderer"
+SOURCE_PATH="config.h"
+DESTINATION_DIR="thorvg/src/renderer"
 DESTINATION_PATH="$DESTINATION_DIR/config.h"
 
 # Ensure the destination directory exists

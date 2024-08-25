@@ -37,9 +37,8 @@ let package = Package(
                 "src/renderer/gl_engine",
                 "src/renderer/wg_engine",
                 "src/savers/gif",
-                "src/tools",
                 "test",
-                "web"
+                "tools"
             ],
             publicHeadersPath: "src/bindings/capi",
             cxxSettings: [

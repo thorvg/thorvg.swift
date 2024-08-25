@@ -1,4 +1,4 @@
 [submodule "thorvg"]
 	path = thorvg
-	url = git@github.com:andyf-canva/thorvg-swift.git
-	branch = release-v0.13.3
+	url = git@github.com:thorvg/thorvg.git
+	branch = v0.14.x

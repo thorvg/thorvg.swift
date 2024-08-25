@@ -19,7 +19,7 @@ let package = Package(
         .target(
             name: "ThorVGSwift",
             dependencies: ["thorvg"],
-            path: "swift"
+            path: "Sources/swift"
         ),
         .target(
             name: "thorvg",
@@ -76,9 +76,6 @@ let package = Package(
                 .headerSearchPath("src/loaders/tvg"),
                 .headerSearchPath("src/renderer"),
                 .headerSearchPath("src/renderer/sw_engine"),
-            ],
-            linkerSettings: [
-                .linkedLibrary("pthread")
             ]
         ),
         .testTarget(
@@ -87,7 +84,7 @@ let package = Package(
                 "ThorVGSwift",
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             ],
-            path: "swift-tests",
+            path: "Sources/swift-tests",
             exclude: ["SnapshotTests/__Snapshots__"],
             resources: [.process("Resources")]
         ),

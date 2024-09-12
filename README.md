@@ -1,7 +1,7 @@
 # ThorVG for Swift
 <p align="center"> <img width="800" height="auto" src="./res/thorvg-swift-logo.png"> </p>
 
-ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://github.com/thorvg/thorvg), providing native support for vector graphics in Swift applications. This package currently supports rendering Lottie animations and is actively evolving to include more features.
+ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://github.com/thorvg/thorvg), providing native support for vector graphics in Swift applications. This package currently only supports rendering Lottie animations and is actively evolving to include more features.
 
 **ThorVG Version:** `v0.14.7` (commit `e3a6bf`)   
 **Supported Platforms:** iOS (minimum deployment target: iOS 13.0)
@@ -23,7 +23,7 @@ dependencies: [
 ```
 
 ## Usage
-This Swift wrapper currently supports rendering Lottie animations. As the package evolves, additional support for more content types will be added.
+This Swift wrapper currently only supports rendering Lottie animations. As the package evolves, additional support for more content types will be added.
 
 The API of `ThorVGSwift` closely follows the structure of the original ThorVG API. It enables rendering of Lottie frames to a buffer. Below is a quick guide to help you get started with the essential APIs.
 
@@ -47,7 +47,7 @@ let size = CGSize(width: 1024, height: 1024)
 let buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
 ```
 
-"From here, initialise a `LottieRenderer` instance to handle the rendering of individual Lottie frames."
+From here, initialise a `LottieRenderer` instance to handle the rendering of individual Lottie frames.
 
 ```swift
 let renderer = LottieRenderer(
@@ -87,6 +87,8 @@ The `render` function takes three parameters:
 let contentRect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
 try renderer.render(frameIndex: 0, contentRect: contentRect, rotation: 0.0)
 ```
+
+And voilà! Your buffer is now filled with the rendered Lottie frame data.
 
 > [!TIP]
 > To render all of the frames in a `Lottie` animation, you can iterate through the `numberOfFrames` property of the `Lottie` class.

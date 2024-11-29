@@ -37,4 +37,8 @@ public class Lottie {
         self.numberOfFrames = animation.getNumberOfFrames()
         self.duration = animation.getDuration()
     }
+
+    public func getSize() -> CGSize {
+        animation.getPicture().getSize()
+    }
 }

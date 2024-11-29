@@ -1,28 +1,34 @@
 import SwiftUI
 
+/// TODO: ....
 @available(iOS 14.0, *)
-struct LottieView: View {
+public struct LottieView: View {
 
     @StateObject private var viewModel: LottieViewModel
 
-    init(lottie: Lottie) {
+    // TODO: Later feature - be dynamic with size.
+
+    /// TODO: ....
+    public init(lottie: Lottie) {
         let viewModel = LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 500, height: 500),
-            frameRate: 30.0
+            size: lottie.getSize()
         )
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 
-    @ViewBuilder func content() -> some View {
+    @ViewBuilder private func content() -> some View {
         if let image = viewModel.renderedFrame {
             Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
         } else {
             Color.clear
         }
     }
 
-    var body: some View {
+    /// TODO: ....
+    public var body: some View {
         content()
         .onAppear {
             viewModel.startAnimating()
@@ -34,15 +40,13 @@ struct LottieView: View {
 }
 
 #Preview {
-    // Load the test.json file from the bundle
     if let path = Bundle.module.path(forResource: "test", ofType: "json"),
        let lottie = try? Lottie(path: path) {
 
         if #available(iOS 14.0, *) {
             LottieView(lottie: lottie)
         } else {
-            Text(":")
-            // Fallback on earlier versions
+            Text("Unsupported iOS Version.")
         }
     } else {
         Text("Failed to load Lottie file.")

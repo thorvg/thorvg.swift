@@ -1,38 +1,34 @@
 import Combine
 import SwiftUI
 
+/// TODO: ....
 class LottieViewModel: ObservableObject {
-    private let frameRate: Double
     private let totalFrames: Float
     private let size: CGSize
     private var buffer: [UInt32]
     private let renderer: LottieRenderer
 
     private var timer: AnyCancellable?
-    private var currentFrame: Float
+    
+    private var currentFrame: Float = 0
+    private let frameRate: Double = 30.0
 
     @Published var renderedFrame: UIImage? = nil
 
     // TODO: Handle different engine types.
-    // TODO: Should size be passed in?
-    init(
-        lottie: Lottie,
-        size: CGSize,
-        frameRate: Double
-    ) {
+    init(lottie: Lottie, size: CGSize) {
         var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
         self.renderer = LottieRenderer(
             lottie,
+            engine: .main,
             size: size,
             buffer: &buffer,
             stride: Int(size.width),
             pixelFormat: .argb
         )
         self.buffer = buffer
-        self.frameRate = frameRate
         self.totalFrames = lottie.numberOfFrames
         self.size = size
-        self.currentFrame = 0
     }
 
     func startAnimating() {

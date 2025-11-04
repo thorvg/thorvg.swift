@@ -57,8 +57,9 @@ class LottieViewModel: ObservableObject {
         do {
             try renderer.render(frameIndex: Float(currentFrame), contentRect: contentRect)
         } catch {
-            print(error)
             fatalError("Rendering error.")
+            // TODO: Use a proper logger here.
+            assertionFailure("LottieRenderingError: \(error)")
         }
 
 
@@ -67,12 +68,14 @@ class LottieViewModel: ObservableObject {
             renderedFrame = image
             currentFrame += 1
         } else {
-            print("UI IMAGE CAST ERROR")
             fatalError("UIImage cast error.")
+            // TODO: Use a proper logger here.
+            assertionFailure("LottieRenderingError: UI IMAGE CAST ERROR")
         }
     }
 }
 
+// TODO: Make this better. Doesn't need to recreate a context everytime we want an image. Should be reused.
 extension UIImage {
     convenience init?(buffer: Buffer, size: CGSize, pixelFormat: PixelFormat) {
         let colorSpace = CGColorSpaceCreateDeviceRGB()

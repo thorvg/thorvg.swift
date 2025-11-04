@@ -8,8 +8,8 @@ public class LottieUIKitView: UIView {
     private var cancellables = Set<AnyCancellable>()
 
     /// TODO: ....
-    public init(lottie: Lottie) {
-        self.viewModel = LottieViewModel(lottie: lottie, size: lottie.getSize())
+    public init(lottie: Lottie, size: CGSize) {
+        self.viewModel = LottieViewModel(lottie: lottie, size: size)
         self.imageView = UIImageView()
         super.init(frame: .zero)
         setupView()

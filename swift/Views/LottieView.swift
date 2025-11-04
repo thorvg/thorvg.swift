@@ -9,10 +9,10 @@ public struct LottieView: View {
     // TODO: Later feature - be dynamic with size.
 
     /// TODO: ....
-    public init(lottie: Lottie) {
+    public init(lottie: Lottie, size: CGSize? = nil) {
         let viewModel = LottieViewModel(
             lottie: lottie,
-            size: lottie.getSize()
+            size: size ?? lottie.size
         )
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -40,6 +40,7 @@ public struct LottieView: View {
 }
 
 #Preview {
+    // TODO: Does this have to live in resources?
     if let path = Bundle.module.path(forResource: "test", ofType: "json"),
        let lottie = try? Lottie(path: path) {
 

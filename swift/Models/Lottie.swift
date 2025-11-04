@@ -11,6 +11,11 @@ public class Lottie {
     /// The duration of the Lottie animation.
     public let duration: CMTime
 
+    /// TODO: ...
+    public var size: CGSize {
+        animation.getPicture().getSize()
+    }
+
     /// The internal animation object, used for manipulating and rendering frames.
     let animation: Animation
 
@@ -36,9 +41,5 @@ public class Lottie {
         self.animation = animation
         self.numberOfFrames = animation.getNumberOfFrames()
         self.duration = animation.getDuration()
-    }
-
-    public func getSize() -> CGSize {
-        animation.getPicture().getSize()
     }
 }

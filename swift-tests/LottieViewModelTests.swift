@@ -41,6 +41,14 @@ final class LottieViewModelTests: XCTestCase {
         XCTAssertEqual(sut.playbackState, .stopped)
         XCTAssertNil(sut.error)
         XCTAssertEqual(sut.progress, 0.0, accuracy: 0.01)
+        
+        // Wait for async initial render
+        let expectation = self.expectation(description: "Initial render")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1.0)
+        
         XCTAssertNotNil(sut.renderedFrame, "Should render initial frame")
     }
     
@@ -53,6 +61,13 @@ final class LottieViewModelTests: XCTestCase {
         )
         
         sut = LottieViewModel(lottie: lottie, size: testSize, configuration: config)
+        
+        // Wait for async initial render
+        let expectation = self.expectation(description: "Initial render")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1.0)
         
         XCTAssertNotNil(sut.renderedFrame, "Should render initial frame")
     }
@@ -359,6 +374,13 @@ final class LottieViewModelTests: XCTestCase {
         let config = LottieConfiguration(contentMode: .scaleToFill)
         sut = LottieViewModel(lottie: lottie, size: testSize, configuration: config)
         
+        // Wait for async initial render
+        let expectation = self.expectation(description: "Initial render")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1.0)
+        
         XCTAssertNotNil(sut.renderedFrame)
     }
     
@@ -366,12 +388,26 @@ final class LottieViewModelTests: XCTestCase {
         let config = LottieConfiguration(contentMode: .scaleAspectFit)
         sut = LottieViewModel(lottie: lottie, size: testSize, configuration: config)
         
+        // Wait for async initial render
+        let expectation = self.expectation(description: "Initial render")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1.0)
+        
         XCTAssertNotNil(sut.renderedFrame)
     }
     
     func testContentMode_ScaleAspectFill_RendersCorrectly() throws {
         let config = LottieConfiguration(contentMode: .scaleAspectFill)
         sut = LottieViewModel(lottie: lottie, size: testSize, configuration: config)
+        
+        // Wait for async initial render
+        let expectation = self.expectation(description: "Initial render")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1.0)
         
         XCTAssertNotNil(sut.renderedFrame)
     }

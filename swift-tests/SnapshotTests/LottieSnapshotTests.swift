@@ -1,5 +1,5 @@
 import XCTest
-
+import UIKit
 import SnapshotTesting
 
 @testable import ThorVGSwift

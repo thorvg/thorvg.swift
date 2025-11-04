@@ -1,4 +1,4 @@
-# ThorVG for Swift
+swift-tests/LottieTests.swift# ThorVG for Swift
 <p align="center"> <img width="800" height="auto" src="./res/thorvg-swift-logo.png"> </p>
 
 ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://github.com/thorvg/thorvg), providing native support for vector graphics in Swift applications. This package currently only supports rendering Lottie animations and is actively evolving to include more features.
@@ -9,6 +9,8 @@ ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://gi
 ## Contents
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Low-Level API (Direct Rendering)](#low-level-api-direct-rendering)
+  - [High-Level Views API (SwiftUI & UIKit)](#high-level-views-api-swiftui--uikit)
 - [Build](#build)
 - [Contributing](#contributing)
 
@@ -25,7 +27,13 @@ dependencies: [
 ## Usage
 This Swift wrapper currently only supports rendering Lottie animations. As the package evolves, additional support for more content types will be added.
 
-The API of `ThorVGSwift` closely follows the structure of the original ThorVG API. It enables rendering of Lottie frames to a buffer. Below is a quick guide to help you get started with the essential APIs.
+ThorVGSwift provides two levels of API:
+1. **Low-Level API**: Direct access to the rendering engine for frame-by-frame control
+2. **High-Level Views API**: Ready-to-use SwiftUI and UIKit views with playback controls
+
+### Low-Level API (Direct Rendering)
+
+The low-level API closely follows the structure of the original ThorVG API, enabling rendering of Lottie frames to a buffer. This is useful when you need fine-grained control over frame rendering.
 
 To start, create a `Lottie` instance using a desired local file path.
 
@@ -92,6 +100,79 @@ And voilà! Your buffer is now filled with the rendered Lottie frame data.
 
 > [!TIP]
 > To render all of the frames in a `Lottie` animation, you can iterate through the `numberOfFrames` property of the `Lottie` class.
+
+### High-Level Views API (SwiftUI & UIKit)
+
+For most use cases, ThorVGSwift provides convenient view components that handle rendering, playback, and animation lifecycle automatically.
+
+#### SwiftUI
+
+```swift
+import SwiftUI
+import ThorVGSwift
+
+struct ContentView: View {
+    let lottie = try! Lottie(path: "animation.json")
+    
+    var body: some View {
+        LottieView(
+            lottie: lottie,
+            size: CGSize(width: 300, height: 300),
+            configuration: LottieConfiguration(
+                loopMode: .loop,
+                speed: 1.0,
+                autoPlay: true
+            )
+        )
+    }
+}
+```
+
+#### UIKit
+
+```swift
+import UIKit
+import ThorVGSwift
+
+class ViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let lottie = try! Lottie(path: "animation.json")
+        let lottieView = LottieUIKitView(
+            lottie: lottie,
+            size: CGSize(width: 300, height: 300),
+            configuration: LottieConfiguration(
+                loopMode: .loop,
+                speed: 1.0,
+                autoPlay: true
+            )
+        )
+        
+        view.addSubview(lottieView)
+        // Add constraints...
+    }
+}
+```
+
+#### Features
+
+The high-level Views API provides:
+- ✅ **Automatic Playback**: Control loop modes (playOnce, loop, repeat, autoReverse)
+- ✅ **Speed Control**: Adjust playback speed with the `speed` parameter
+- ✅ **Content Modes**: Scale animations to fit, fill, or maintain aspect ratio
+- ✅ **Progress Tracking**: Monitor playback progress and state
+- ✅ **Error Handling**: Built-in error reporting through published properties
+- ✅ **Manual Controls**: Play, pause, stop, and seek to specific frames
+- ✅ **SwiftUI Previews**: Interactive previews for rapid development
+
+📖 **[View Complete Views API Documentation →](VIEWS_API_DOCUMENTATION.md)**
+
+The full documentation includes:
+- Detailed API reference for `LottieView`, `LottieUIKitView`, and `LottieViewModel`
+- Configuration options and best practices
+- Complete usage examples and integration patterns
+- Testing strategies and troubleshooting guides
 
 ## Build
 Follow these steps to configure your environment and build the ThorVG Swift package in Xcode.

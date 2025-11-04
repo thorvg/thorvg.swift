@@ -18,6 +18,14 @@ final class LottieTests: XCTestCase {
 
         XCTAssertEqual(lottie.duration, CMTime(seconds: 3))
     }
+    
+    func testFrameDuration_CalculatesCorrectly() throws {
+        let lottie = try Lottie(path: testLottieUrl.path)
+        
+        // Expected: 3 seconds / 180 frames = 0.0166... seconds per frame
+        let expected = CMTime(seconds: 3.0 / 180.0, preferredTimescale: 600)
+        XCTAssertEqual(lottie.frameDuration, expected)
+    }
 
     func testInit_WithInvalidPath_ThrowsError() {
         do {

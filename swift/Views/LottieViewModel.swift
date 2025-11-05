@@ -36,6 +36,9 @@ public class LottieViewModel: ObservableObject {
         
         /// Invalid frame index.
         case invalidFrameIndex
+        
+        /// Failed to create CGContext for rendering.
+        case contextCreationFailed
     }
     
     // MARK: - Published Properties
@@ -60,7 +63,8 @@ public class LottieViewModel: ObservableObject {
     private let configuration: LottieConfiguration
     private var buffer: [UInt32]
     private let renderer: LottieRenderer
-    
+    private var cgContext: CGContext?
+
     private var timer: AnyCancellable?
     private var elapsedTime: CMTime = .zero
     private var repeatCount: Int = 0
@@ -196,7 +200,7 @@ public class LottieViewModel: ObservableObject {
     private func renderCurrentFrame() {
         let contentRect = calculateContentRect()
         
-        // Calculate frame index from elapsed time (like LottieSampler)
+        // Calculate frame index from elapsed time
         let currentFrame = Float((elapsedTime.seconds / lottie.frameDuration.seconds).rounded(.down))
         
         do {
@@ -206,16 +210,26 @@ public class LottieViewModel: ObservableObject {
             return
         }
         
-        guard let image = UIImage(
-            buffer: &buffer,
-            size: size,
-            pixelFormat: configuration.pixelFormat
-        ) else {
+        // Lazy initialize CGContext on first render
+        if cgContext == nil {
+            guard let context = CGContext.create(
+                buffer: &self.buffer,
+                size: self.size,
+                pixelFormat: configuration.pixelFormat
+            ) else {
+                self.error = .contextCreationFailed
+                return
+            }
+            self.cgContext = context
+        }
+
+        // Create UIImage from the context
+        guard let cgImage = cgContext?.makeImage() else {
             self.error = .imageCreationFailed
             return
         }
         
-        renderedFrame = image
+        renderedFrame = UIImage(cgImage: cgImage, scale: 1.0, orientation: .up)
         progress = elapsedTime.seconds / lottie.duration.seconds
     }
     
@@ -320,14 +334,39 @@ public class LottieViewModel: ObservableObject {
     }
 }
 
-// TODO: Make this better. Doesn't need to recreate a context everytime we want an image. Should be reused.
-extension UIImage {
-    convenience init?(buffer: Buffer, size: CGSize, pixelFormat: PixelFormat) {
+// MARK: - PixelFormat Extension
+
+extension PixelFormat {
+    var bitmapInfo: CGBitmapInfo {
+        switch self {
+        case .argb:
+            return [.byteOrder32Little, CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)]
+        case .abgr:
+            return [.byteOrder32Big, CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)]
+        }
+    }
+}
+
+// MARK: - CGContext Extension
+
+extension CGContext {
+    /// Creates a CGContext for rendering Lottie animations.
+    ///
+    /// - Parameters:
+    ///   - buffer: The buffer to render into.
+    ///   - size: The size of the rendering context.
+    ///   - pixelFormat: The pixel format for the buffer.
+    /// - Returns: A configured CGContext for rendering, or `nil` if creation fails.
+    static func create(
+        buffer: Buffer,
+        size: CGSize,
+        pixelFormat: PixelFormat
+    ) -> CGContext? {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let bitmapInfo = pixelFormat.bitmapInfo.rawValue
         let bitsPerComponent = 8
         let bytesPerRow = Int(size.width) * 4
-
+        
         guard let context = CGContext(
             data: buffer,
             width: Int(size.width),
@@ -339,22 +378,7 @@ extension UIImage {
         ) else {
             return nil
         }
-
-        guard let cgImage = context.makeImage() else {
-            return nil
-        }
-
-        self.init(cgImage: cgImage, scale: 1.0, orientation: .up)
-    }
-}
-
-extension PixelFormat {
-    var bitmapInfo: CGBitmapInfo {
-        switch self {
-        case .argb:
-            return [.byteOrder32Little, CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)]
-        case .abgr:
-            return [.byteOrder32Big, CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)]
-        }
+        
+        return context
     }
 }

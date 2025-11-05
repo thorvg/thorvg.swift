@@ -42,8 +42,6 @@ The Lottie views implementation consists of three main layers:
 
 4. **Reactive**: Uses Combine framework for reactive updates, ensuring UI stays in sync with animation state.
 
-5. **Platform-Specific**: Views are conditionally compiled for iOS only, as they depend on UIKit.
-
 ---
 
 ## LottieConfiguration
@@ -275,13 +273,7 @@ struct ContentView: View {
     
     var body: some View {
         LottieView(viewModel: viewModel)
-            .frame(width: 300, height: 300)  // SwiftUI handles scaling
             .onAppear { viewModel.play() }
-            .onChange(of: viewModel.error) { _, error in
-                if let error = error {
-                    print("Animation error: \(error)")
-                }
-            }
     }
 }
 ```
@@ -505,7 +497,7 @@ cd /path/to/thorvg.swift
 swift test --destination 'platform=iOS Simulator'
 ```
 
-Or use Xcode's test runner for interactive testing with Previews.
+Or use Xcode's Canvas debugger for interactive testing with Previews.
 
 ---
 
@@ -519,7 +511,9 @@ struct SimpleAnimationView: View {
     @StateObject private var viewModel: LottieViewModel
     
     init() {
-        let lottie = try! Lottie(path: "loader.json")
+        guard let lottie = try? Lottie(path: "loader.json") else {
+            fatalError("Failed to load Lottie")
+        }
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
             configuration: .default
@@ -528,16 +522,16 @@ struct SimpleAnimationView: View {
     
     var body: some View {
         LottieView(viewModel: viewModel)
-            .frame(width: 100, height: 100)
             .onAppear { viewModel.play() }
     }
 }
 
 // UIKit
-let lottie = try! Lottie(path: "loader.json")
+guard let lottie = try? Lottie(path: "loader.json") else {
+    fatalError("Failed to load Lottie")
+}
 let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
 view.addSubview(lottieView)
 viewModel.play()
 ```
@@ -560,7 +554,6 @@ struct OneShotAnimationView: View {
     
     var body: some View {
         LottieView(viewModel: viewModel)
-            .frame(width: 300, height: 300)
             .onChange(of: viewModel.playbackState) { _, state in
                 if state == .completed {
                     isComplete = true
@@ -575,7 +568,6 @@ struct OneShotAnimationView: View {
 let config = LottieConfiguration(loopMode: .playOnce)
 let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 lottieView.onPlaybackStateChanged = { state in
     if state == .completed {
@@ -600,7 +592,6 @@ struct ControlledAnimationView: View {
     var body: some View {
         VStack {
             LottieView(viewModel: viewModel)
-                .frame(width: 300, height: 300)
             
             HStack {
                 Button("Play") { viewModel.play() }
@@ -614,7 +605,6 @@ struct ControlledAnimationView: View {
 // UIKit
 let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 // Control buttons
 playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
@@ -640,7 +630,6 @@ struct ProgressAnimationView: View {
     var body: some View {
         VStack {
             LottieView(viewModel: viewModel)
-                .frame(width: 300, height: 300)
             
             Slider(value: Binding(
                 get: { viewModel.progress },
@@ -655,7 +644,6 @@ struct ProgressAnimationView: View {
 // UIKit
 let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 lottieView.onProgressChanged = { progress in
     progressSlider.value = Float(progress)
@@ -681,13 +669,11 @@ let config = LottieConfiguration(
     configuration: config
 )
 LottieView(viewModel: viewModel)
-    .frame(width: 300, height: 300)
     .onAppear { viewModel.play() }
 
 // UIKit
 let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 viewModel.play()
 ```
 
@@ -705,13 +691,11 @@ let config = LottieConfiguration(
     configuration: config
 )
 LottieView(viewModel: viewModel)
-    .frame(width: 300, height: 300)
     .onAppear { viewModel.play() }
 
 // UIKit
 let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 viewModel.play()
 ```
 
@@ -726,13 +710,11 @@ let config = LottieConfiguration(loopMode: .autoReverse)
     configuration: config
 )
 LottieView(viewModel: viewModel)
-    .frame(width: 300, height: 300)
     .onAppear { viewModel.play() }
 
 // UIKit
 let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 viewModel.play()
 ```
 
@@ -750,7 +732,6 @@ struct SafeAnimationView: View {
     var body: some View {
         VStack {
             LottieView(viewModel: viewModel)
-                .frame(width: 300, height: 300)
             
             if let error = viewModel.error {
                 Text("Error: \(error.localizedDescription)")
@@ -769,7 +750,6 @@ struct SafeAnimationView: View {
 // UIKit
 let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
-lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 lottieView.onError = { [weak self] error in
     let alert = UIAlertController(
@@ -783,6 +763,254 @@ lottieView.onError = { [weak self] error in
 
 viewModel.play()
 ```
+
+### Example 9: Interactive Seeking with Slider
+
+This example shows a more advanced seeking implementation where the animation pauses while dragging the slider:
+
+```swift
+// SwiftUI
+struct InteractiveSeekView: View {
+    @StateObject private var viewModel: LottieViewModel
+    @State private var sliderValue: Double = 0.0
+    @State private var isDragging: Bool = false
+    
+    init(lottie: Lottie) {
+        _viewModel = StateObject(wrappedValue: LottieViewModel(lottie: lottie))
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            LottieView(viewModel: viewModel)
+            
+            VStack(spacing: 8) {
+                Slider(
+                    value: $sliderValue,
+                    in: 0...1,
+                    onEditingChanged: { editing in
+                        if editing {
+                            // Pause when user starts dragging
+                            isDragging = true
+                            viewModel.pause()
+                        } else {
+                            // Resume when user stops dragging
+                            isDragging = false
+                            viewModel.play()
+                        }
+                    }
+                )
+                .onChange(of: sliderValue) { newValue in
+                    // Only seek while dragging to avoid feedback loops
+                    if isDragging {
+                        viewModel.seek(to: newValue)
+                    }
+                }
+                
+                HStack {
+                    Button(viewModel.playbackState == .playing ? "Pause" : "Play") {
+                        if viewModel.playbackState == .playing {
+                            viewModel.pause()
+                        } else {
+                            viewModel.play()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(viewModel.progress * 100))%")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding()
+        .onChange(of: viewModel.progress) { newProgress in
+            // Update slider to reflect animation progress (but not while dragging)
+            if !isDragging {
+                sliderValue = newProgress
+            }
+        }
+        .onAppear { viewModel.play() }
+    }
+}
+
+// UIKit
+class InteractiveSeekViewController: UIViewController {
+    private var viewModel: LottieViewModel!
+    private var lottieView: LottieUIKitView!
+    private var progressSlider: UISlider!
+    private var progressLabel: UILabel!
+    private var isDragging = false
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        guard let lottie = try? Lottie(path: "animation.json") else { return }
+        
+        viewModel = LottieViewModel(lottie: lottie)
+        lottieView = LottieUIKitView(viewModel: viewModel)
+        
+        progressSlider = UISlider()
+        progressSlider.addTarget(self, action: #selector(sliderTouchDown), for: .touchDown)
+        progressSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
+        progressSlider.addTarget(self, action: #selector(sliderTouchUp), for: [.touchUpInside, .touchUpOutside])
+        
+        // Setup UI hierarchy and constraints...
+        
+        lottieView.onProgressChanged = { [weak self] progress in
+            guard let self = self, !self.isDragging else { return }
+            self.progressSlider.value = Float(progress)
+            self.progressLabel.text = "\(Int(progress * 100))%"
+        }
+        
+        viewModel.play()
+    }
+    
+    @objc private func sliderTouchDown() {
+        isDragging = true
+        viewModel.pause()
+    }
+    
+    @objc private func sliderValueChanged(_ slider: UISlider) {
+        if isDragging {
+            viewModel.seek(to: Double(slider.value))
+        }
+    }
+    
+    @objc private func sliderTouchUp() {
+        isDragging = false
+        viewModel.play()
+    }
+}
+```
+
+### Example 10: Using Scale Aspect Fill Content Mode
+
+This example demonstrates `.scaleAspectFill` content mode, which crops the animation to fill the view while maintaining aspect ratio:
+
+```swift
+// SwiftUI
+struct AspectFillAnimationView: View {
+    @StateObject private var fillViewModel: LottieViewModel
+    @StateObject private var fitViewModel: LottieViewModel
+    
+    init(lottie: Lottie) {
+        // scaleAspectFill: Wide frame - will crop top/bottom
+        let fillConfig = LottieConfiguration(
+            loopMode: .loop,
+            contentMode: .scaleAspectFill
+        )
+        _fillViewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            size: CGSize(width: 300, height: 150),  // Explicit size for predictable cropping
+            configuration: fillConfig
+        ))
+        
+        // scaleAspectFit: Shows full animation (default)
+        let fitConfig = LottieConfiguration(
+            loopMode: .loop,
+            contentMode: .scaleAspectFit
+        )
+        _fitViewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            configuration: fitConfig
+        ))
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 32) {
+                VStack(spacing: 8) {
+                    Text("Scale Aspect Fill")
+                        .font(.headline)
+                    Text("Wide frame - crops content to fill")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    LottieView(viewModel: fillViewModel)
+                        .frame(width: 300, height: 150)
+                        .background(Color.blue.opacity(0.1))
+                        .border(Color.blue, width: 2)
+                }
+                
+                VStack(spacing: 8) {
+                    Text("Scale Aspect Fit")
+                        .font(.headline)
+                    Text("Shows full animation")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    LottieView(viewModel: fitViewModel)
+                        .frame(width: 300, height: 150)
+                        .background(Color.green.opacity(0.1))
+                        .border(Color.green, width: 2)
+                }
+            }
+            .padding()
+        }
+        .onAppear {
+            fillViewModel.play()
+            fitViewModel.play()
+        }
+    }
+}
+
+// UIKit
+class AspectFillViewController: UIViewController {
+    private var fillViewModel: LottieViewModel!
+    private var fitViewModel: LottieViewModel!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        guard let lottie = try? Lottie(path: "animation.json") else { return }
+        
+        // Create viewModel with scaleAspectFill
+        let fillConfig = LottieConfiguration(
+            loopMode: .loop,
+            contentMode: .scaleAspectFill
+        )
+        fillViewModel = LottieViewModel(
+            lottie: lottie,
+            size: CGSize(width: 300, height: 150),  // Match view frame
+            configuration: fillConfig
+        )
+        
+        let fillView = LottieUIKitView(viewModel: fillViewModel)
+        fillView.frame = CGRect(x: 20, y: 100, width: 300, height: 150)
+        fillView.backgroundColor = UIColor.systemBlue.withAlphaComponent(0.1)
+        fillView.layer.borderColor = UIColor.systemBlue.cgColor
+        fillView.layer.borderWidth = 2
+        view.addSubview(fillView)
+        
+        // Create viewModel with scaleAspectFit (default)
+        let fitConfig = LottieConfiguration(
+            loopMode: .loop,
+            contentMode: .scaleAspectFit
+        )
+        fitViewModel = LottieViewModel(lottie: lottie, configuration: fitConfig)
+        
+        let fitView = LottieUIKitView(viewModel: fitViewModel)
+        fitView.frame = CGRect(x: 20, y: 280, width: 300, height: 150)
+        fitView.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.1)
+        fitView.layer.borderColor = UIColor.systemGreen.cgColor
+        fitView.layer.borderWidth = 2
+        view.addSubview(fitView)
+        
+        // Start playback
+        fillViewModel.play()
+        fitViewModel.play()
+    }
+}
+```
+
+**Key Points for Scale Aspect Fill:**
+- Always specify the `size` parameter in `LottieViewModel` to match your view's display dimensions
+- The animation will be cropped to fill the specified size while maintaining its aspect ratio
+- Content at the edges may be cut off depending on the aspect ratio difference
+- Use `.scaleAspectFit` (default) if you need to see the entire animation
 
 ---
 

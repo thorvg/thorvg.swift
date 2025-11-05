@@ -16,7 +16,6 @@ import SwiftUI
 ///
 /// LottieView(viewModel: viewModel)
 ///     .onAppear { viewModel.play() }
-///     }
 /// ```
 ///
 /// ## Observing Animation State

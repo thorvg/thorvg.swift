@@ -1,4 +1,4 @@
-swift-tests/LottieTests.swift# ThorVG for Swift
+# ThorVG for Swift
 <p align="center"> <img width="800" height="auto" src="./res/thorvg-swift-logo.png"> </p>
 
 ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://github.com/thorvg/thorvg), providing native support for vector graphics in Swift applications. This package currently only supports rendering Lottie animations and is actively evolving to include more features.

@@ -5,7 +5,8 @@ import Foundation
 /// Use this structure to customize how a Lottie animation plays, including
 /// looping behavior, speed, and content rendering options.
 ///
-/// Example:
+/// ## Basic Usage
+///
 /// ```swift
 /// let config = LottieConfiguration(
 ///     loopMode: .repeat(count: 3),
@@ -13,6 +14,18 @@ import Foundation
 ///     contentMode: .scaleAspectFit
 /// )
 /// ```
+///
+/// ## Understanding Content Modes and Render Size
+///
+/// The `contentMode` property controls how the animation is **cropped and scaled during rendering**,
+/// not just how it's displayed. For optimal results:
+///
+/// - **Default (no size set)**: Works great for most cases. Renders at native resolution.
+/// - **With `.scaleAspectFill`**: Set `size` in `LottieViewModel` to match your view's frame
+///   for proper cropping behavior.
+/// - **For performance**: Set `size` smaller than display size (e.g., 100×100 for thumbnails).
+///
+/// See `ContentMode` and `LottieViewModel.init` documentation for details.
 public struct LottieConfiguration {
     
     /// Defines how the animation should loop.
@@ -31,14 +44,35 @@ public struct LottieConfiguration {
     }
     
     /// Defines how content should be displayed within the view bounds.
+    ///
+    /// **Important**: For proper behavior, especially with `.scaleAspectFill`, set the `size` parameter
+    /// in `LottieViewModel` to match your view's display size. The content mode controls how the animation
+    /// is cropped/scaled during rendering, not just how the final image is displayed.
     public enum ContentMode {
-        /// Scale to fill the view, potentially distorting the aspect ratio.
-        case scaleToFill
-        
         /// Scale to fit within the view while maintaining aspect ratio.
+        ///
+        /// The animation will scale to fit entirely within the rendering size, maintaining its
+        /// original aspect ratio. This may result in letterboxing (empty space on sides/top/bottom).
         case scaleAspectFit
         
         /// Scale to fill the view while maintaining aspect ratio (may crop).
+        ///
+        /// The animation will scale to completely fill the rendering size while maintaining its
+        /// aspect ratio. Parts of the animation may be cropped if the aspect ratios don't match.
+        ///
+        /// **Note**: For this mode to work correctly, you **must** set the `size` parameter in
+        /// `LottieViewModel` to match your view's display frame. Otherwise, cropping won't occur
+        /// as expected.
+        ///
+        /// Example:
+        /// ```swift
+        /// let config = LottieConfiguration(contentMode: .scaleAspectFill)
+        /// let viewModel = LottieViewModel(
+        ///     lottie: myLottie,
+        ///     size: CGSize(width: 200, height: 300),  // Match your view's frame
+        ///     configuration: config
+        /// )
+        /// ```
         case scaleAspectFill
     }
     

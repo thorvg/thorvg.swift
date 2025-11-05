@@ -76,7 +76,18 @@ public class LottieViewModel: ObservableObject {
     ///
     /// - Parameters:
     ///   - lottie: The Lottie animation to play.
-    ///   - size: The rendering size for the animation. If `nil`, uses the Lottie's `frameSize`.
+    ///   - size: The rendering size for the animation. If `nil`, uses the animation's intrinsic size
+    ///           (`lottie.frameSize`).
+    ///
+    ///           **When to set size:**
+    ///           - **For `contentMode: .scaleAspectFill`**: Set this to match your view's display size
+    ///             to ensure proper cropping. Without matching sizes, the cropping won't work correctly.
+    ///           - **For performance optimization**: Render at a smaller size (e.g., 100×100 for thumbnails)
+    ///             instead of full resolution, then let SwiftUI/UIKit scale up.
+    ///           - **For pixel-perfect rendering**: Match this to your view's frame size.
+    ///
+    ///           **Default behavior**: Most users can omit this parameter. The animation renders at its
+    ///           native resolution and SwiftUI/UIKit automatically scales it to fit the view.
     ///   - configuration: Configuration options for playback. Defaults to `.default`.
     ///   - engine: The ThorVG engine to use. Defaults to `.main`.
     public init(
@@ -228,7 +239,7 @@ public class LottieViewModel: ObservableObject {
         let animationSize = lottie.frameSize
         
         switch configuration.contentMode {
-        case .scaleToFill, .scaleAspectFit:
+        case .scaleAspectFit:
             return CGRect(origin: .zero, size: animationSize)
             
         case .scaleAspectFill:

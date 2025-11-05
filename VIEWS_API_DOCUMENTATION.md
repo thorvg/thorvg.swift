@@ -65,11 +65,13 @@ public enum LoopMode: Equatable {
 #### Content Mode
 ```swift
 public enum ContentMode {
-    case scaleToFill     // Fill view, may distort
     case scaleAspectFit  // Fit within view, maintain aspect
     case scaleAspectFill // Fill view, maintain aspect, may crop
 }
 ```
+
+> [!NOTE]
+> Content modes control how the animation is cropped/scaled **during rendering**, not view-level scaling. For best results, pass a `size` parameter to `LottieViewModel` that matches your view's frame dimensions. See [Understanding Content Modes and Render Size](#understanding-content-modes-and-render-size) for details.
 
 #### All Configuration Options
 
@@ -91,6 +93,38 @@ let config = LottieConfiguration(
     frameRate: 60.0,
     pixelFormat: .argb
 )
+```
+
+### Understanding Content Modes and Render Size
+
+Content modes control how the animation is **rendered to the buffer**, not how the view is displayed on screen:
+
+**`.scaleAspectFit` (default)**
+- Renders the complete animation
+- Maintains aspect ratio
+- Best for most use cases where you want to see the entire animation
+
+**`.scaleAspectFill`**
+- Fills the render buffer completely
+- Maintains aspect ratio by cropping content
+- Requires the `size` parameter in `LottieViewModel` to match your view's display dimensions for predictable cropping
+
+**How it works:**
+```swift
+// Example 1: Using default intrinsic size (recommended)
+let viewModel = LottieViewModel(
+    lottie: lottie,
+    configuration: LottieConfiguration(contentMode: .scaleAspectFit)
+)
+// SwiftUI or UIKit then scales the rendered image to fit your view frame
+
+// Example 2: Using scaleAspectFill with explicit size
+let viewModel = LottieViewModel(
+    lottie: lottie,
+    size: CGSize(width: 300, height: 150),  // Match your view frame
+    configuration: LottieConfiguration(contentMode: .scaleAspectFill)
+)
+// Renders at 300x150, cropping to fill this specific size
 ```
 
 ---
@@ -125,9 +159,15 @@ public enum PlaybackState: Equatable {
 public enum PlaybackError: Error, Equatable {
     case renderingFailed(String)
     case imageCreationFailed
+    case contextCreationFailed
     case invalidFrameIndex
 }
 ```
+
+- `renderingFailed`: The underlying ThorVG renderer failed to render a frame
+- `imageCreationFailed`: Failed to create a `UIImage` from the rendered buffer
+- `contextCreationFailed`: Failed to create a `CGContext` for rendering
+- `invalidFrameIndex`: Attempted to render an invalid frame index
 
 ### Public Methods
 
@@ -149,12 +189,58 @@ public func seek(to progress: Double)
 public func seek(toFrame frame: Float)
 ```
 
+### Initialization
+
+```swift
+public init(
+    lottie: Lottie,
+    size: CGSize? = nil,
+    configuration: LottieConfiguration = .default,
+    engine: Engine = .main
+)
+```
+
+**Parameters:**
+- `lottie`: The Lottie animation to render
+- `size`: Optional render size. If `nil`, defaults to `lottie.frameSize` (the animation's intrinsic dimensions)
+- `configuration`: Animation playback and rendering configuration
+- `engine`: The ThorVG rendering engine to use (defaults to `.main`)
+
+**Understanding the `size` Parameter:**
+
+The `size` parameter controls the **render buffer dimensions** and interacts with `contentMode`:
+
+- **When `nil` (default)**: Renders at the animation's intrinsic size. The view layer (SwiftUI/UIKit) handles scaling to fit your UI. Best for most use cases.
+
+- **When specified**: Renders at the exact dimensions you provide. Useful when:
+  - Using `.scaleAspectFill` to crop content (requires matching the view's display size)
+  - Optimizing performance for very large or very small display sizes
+  - You know the exact display dimensions ahead of time
+
+**Example:**
+```swift
+// Use intrinsic size - SwiftUI handles scaling
+let viewModel = LottieViewModel(
+    lottie: lottie,
+    configuration: .default
+)
+
+// Or specify size for scaleAspectFill cropping
+let viewModel = LottieViewModel(
+    lottie: lottie,
+    size: CGSize(width: 300, height: 150),  // Wide frame
+    configuration: LottieConfiguration(contentMode: .scaleAspectFill)
+)
+```
+
 ### Implementation Details
 
 - **Thread Safety**: All UI updates are posted to the main thread
 - **Memory Management**: Automatically cancels timers on deinit
 - **Error Handling**: Errors are published rather than causing crashes
-- **Efficient Rendering**: Buffer is reused across frames
+- **Efficient Rendering**: 
+  - Buffer is reused across frames
+  - CGContext is created once and reused for all frames
 - **Time-Based Playback**: Uses `CMTime` for precise animation timing
 - **Decoupled Speed and Frame Rate**: 
   - `speed` controls playback rate (how fast animation time progresses)
@@ -180,16 +266,22 @@ struct ContentView: View {
             fatalError("Failed to load Lottie")
         }
         
+        // Size is optional - defaults to animation's intrinsic size
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 300, height: 300),
             configuration: .default
         ))
     }
     
     var body: some View {
         LottieView(viewModel: viewModel)
+            .frame(width: 300, height: 300)  // SwiftUI handles scaling
             .onAppear { viewModel.play() }
+            .onChange(of: viewModel.error) { _, error in
+                if let error = error {
+                    print("Animation error: \(error)")
+                }
+            }
     }
 }
 ```
@@ -430,24 +522,22 @@ struct SimpleAnimationView: View {
         let lottie = try! Lottie(path: "loader.json")
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 100, height: 100),
             configuration: .default
         ))
     }
     
     var body: some View {
         LottieView(viewModel: viewModel)
+            .frame(width: 100, height: 100)
             .onAppear { viewModel.play() }
     }
 }
 
 // UIKit
 let lottie = try! Lottie(path: "loader.json")
-let viewModel = LottieViewModel(
-    lottie: lottie,
-    size: CGSize(width: 100, height: 100)
-)
+let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
 view.addSubview(lottieView)
 viewModel.play()
 ```
@@ -464,7 +554,6 @@ struct OneShotAnimationView: View {
         let config = LottieConfiguration(loopMode: .playOnce)
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 300, height: 300),
             configuration: config
         ))
     }
@@ -486,6 +575,7 @@ struct OneShotAnimationView: View {
 let config = LottieConfiguration(loopMode: .playOnce)
 let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 lottieView.onPlaybackStateChanged = { state in
     if state == .completed {
@@ -504,10 +594,7 @@ struct ControlledAnimationView: View {
     @StateObject private var viewModel: LottieViewModel
     
     init(lottie: Lottie) {
-        _viewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            size: CGSize(width: 300, height: 300)
-        ))
+        _viewModel = StateObject(wrappedValue: LottieViewModel(lottie: lottie))
     }
     
     var body: some View {
@@ -525,8 +612,9 @@ struct ControlledAnimationView: View {
 }
 
 // UIKit
-let viewModel = LottieViewModel(lottie: lottie, size: size)
+let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 // Control buttons
 playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
@@ -546,10 +634,7 @@ struct ProgressAnimationView: View {
     @StateObject private var viewModel: LottieViewModel
     
     init(lottie: Lottie) {
-        _viewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            size: CGSize(width: 300, height: 300)
-        ))
+        _viewModel = StateObject(wrappedValue: LottieViewModel(lottie: lottie))
     }
     
     var body: some View {
@@ -568,8 +653,9 @@ struct ProgressAnimationView: View {
 }
 
 // UIKit
-let viewModel = LottieViewModel(lottie: lottie, size: size)
+let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 lottieView.onProgressChanged = { progress in
     progressSlider.value = Float(progress)
@@ -592,15 +678,16 @@ let config = LottieConfiguration(
 // SwiftUI
 @StateObject var viewModel = LottieViewModel(
     lottie: lottie,
-    size: size,
     configuration: config
 )
 LottieView(viewModel: viewModel)
+    .frame(width: 300, height: 300)
     .onAppear { viewModel.play() }
 
 // UIKit
-let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 viewModel.play()
 ```
 
@@ -615,15 +702,16 @@ let config = LottieConfiguration(
 // SwiftUI
 @StateObject var viewModel = LottieViewModel(
     lottie: lottie,
-    size: size,
     configuration: config
 )
 LottieView(viewModel: viewModel)
+    .frame(width: 300, height: 300)
     .onAppear { viewModel.play() }
 
 // UIKit
-let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 viewModel.play()
 ```
 
@@ -635,15 +723,16 @@ let config = LottieConfiguration(loopMode: .autoReverse)
 // SwiftUI
 @StateObject var viewModel = LottieViewModel(
     lottie: lottie,
-    size: size,
     configuration: config
 )
 LottieView(viewModel: viewModel)
+    .frame(width: 300, height: 300)
     .onAppear { viewModel.play() }
 
 // UIKit
-let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, configuration: config)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 viewModel.play()
 ```
 
@@ -655,10 +744,7 @@ struct SafeAnimationView: View {
     @StateObject private var viewModel: LottieViewModel
     
     init(lottie: Lottie) {
-        _viewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            size: CGSize(width: 300, height: 300)
-        ))
+        _viewModel = StateObject(wrappedValue: LottieViewModel(lottie: lottie))
     }
     
     var body: some View {
@@ -672,12 +758,18 @@ struct SafeAnimationView: View {
             }
         }
         .onAppear { viewModel.play() }
+        .onChange(of: viewModel.error) { _, error in
+            if let error = error {
+                print("Animation error occurred: \(error)")
+            }
+        }
     }
 }
 
 // UIKit
-let viewModel = LottieViewModel(lottie: lottie, size: size)
+let viewModel = LottieViewModel(lottie: lottie)
 let lottieView = LottieUIKitView(viewModel: viewModel)
+lottieView.frame = CGRect(x: 0, y: 0, width: 300, height: 300)
 
 lottieView.onError = { [weak self] error in
     let alert = UIAlertController(
@@ -728,15 +820,19 @@ Always use `@StateObject` in SwiftUI to maintain ViewModel ownership:
 
 ### 3. Size Considerations
 
-For best performance, specify an appropriate size:
+The `size` parameter is optional and defaults to the animation's intrinsic size:
 
 ```swift
-// Good: Explicit size matching your layout
-LottieViewModel(lottie: lottie, size: CGSize(width: 300, height: 300))
+// ✅ Recommended: Use default size (animation's intrinsic dimensions)
+// Let SwiftUI/UIKit handle scaling to your desired frame
+LottieViewModel(lottie: lottie)
 
-// Acceptable: Uses intrinsic size (may be very large)
-LottieViewModel(lottie: lottie, size: lottie.frameSize)
+// ✅ Also valid: Specify size when using .scaleAspectFill
+// or when you need to optimize for a specific display size
+LottieViewModel(lottie: lottie, size: CGSize(width: 300, height: 300))
 ```
+
+For most use cases, omit the `size` parameter and use SwiftUI's `.frame()` or UIKit's frame property to control the display size.
 
 ### 4. Explicit Playback Control
 
@@ -786,7 +882,7 @@ extension LottieConfiguration {
 }
 
 // Usage
-let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: .onboarding)
+let viewModel = LottieViewModel(lottie: lottie, configuration: .onboarding)
 ```
 
 ---
@@ -818,11 +914,12 @@ This package is designed exclusively for iOS and requires UIKit.
 2. Lower the frame rate (default 30fps is usually sufficient)
 3. Consider using a simpler animation
 
-### Issue: Animation appears distorted
+### Issue: Animation appears distorted or cropped
 
 **Solution**: Check the `contentMode` configuration:
-- Use `.scaleAspectFit` to maintain aspect ratio (default)
-- Use `.scaleToFill` if distortion is acceptable
+- Use `.scaleAspectFit` (default) to show the full animation while maintaining aspect ratio
+- Use `.scaleAspectFill` to fill the view while maintaining aspect ratio (may crop content)
+- When using `.scaleAspectFill`, ensure the `size` parameter matches your view's display dimensions
 
 ### Issue: Animation plays too fast/slow at higher frame rates
 

@@ -103,7 +103,7 @@ And voilà! Your buffer is now filled with the rendered Lottie frame data.
 
 ### High-Level Views API (SwiftUI & UIKit)
 
-For most use cases, ThorVGSwift provides convenient view components that handle rendering, playback, and animation lifecycle automatically.
+For most use cases, ThorVGSwift provides convenient view components that handle rendering, playback, and animation lifecycle automatically. **All animation state is managed through the `LottieViewModel`**, which you create externally and pass to the view.
 
 #### SwiftUI
 
@@ -117,9 +117,10 @@ struct ContentView: View {
     init() {
         let lottie = try! Lottie(path: "animation.json")
         let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
+        
+        // Size is optional - defaults to animation's intrinsic size
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 300, height: 300),
             configuration: config
         ))
     }
@@ -127,6 +128,11 @@ struct ContentView: View {
     var body: some View {
         LottieView(viewModel: viewModel)
             .onAppear { viewModel.play() }
+            .onChange(of: viewModel.error) { _, error in
+                if let error = error {
+                    print("Animation error: \(error)")
+                }
+            }
     }
 }
 ```
@@ -147,12 +153,17 @@ class ViewController: UIViewController {
         let lottie = try! Lottie(path: "animation.json")
         let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
         
+        // Size is optional - defaults to animation's intrinsic size
         viewModel = LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 300, height: 300),
             configuration: config
         )
         lottieView = LottieUIKitView(viewModel: viewModel)
+        
+        // Observe animation errors
+        lottieView.onError = { error in
+            print("Animation error: \(error)")
+        }
         
         view.addSubview(lottieView)
         // Add constraints...
@@ -165,12 +176,14 @@ class ViewController: UIViewController {
 #### Features
 
 The high-level Views API provides:
-- ✅ **Automatic Playback**: Control loop modes (playOnce, loop, repeat, autoReverse)
-- ✅ **Speed Control**: Adjust playback speed with the `speed` parameter
-- ✅ **Content Modes**: Scale animations to fit, fill, or maintain aspect ratio
-- ✅ **Progress Tracking**: Monitor playback progress and state
-- ✅ **Error Handling**: Built-in error reporting through published properties
-- ✅ **Manual Controls**: Play, pause, stop, and seek to specific frames
+- ✅ **ViewModel-Based State**: All animation state managed through `LottieViewModel`
+- ✅ **Flexible Sizing**: Optional `size` parameter - defaults to animation's intrinsic dimensions
+- ✅ **Playback Control**: Loop modes (playOnce, loop, repeat, autoReverse) and speed adjustment
+- ✅ **Content Modes**: Aspect fit and aspect fill scaling options
+- ✅ **Progress Tracking**: Monitor playback progress and state via published properties
+- ✅ **Error Handling**: Built-in error reporting through Combine publishers
+- ✅ **Manual Controls**: Play, pause, stop, and seek to specific frames or progress
+- ✅ **Performance Optimized**: Reusable CGContext and efficient buffer management
 - ✅ **SwiftUI Previews**: Interactive previews for rapid development
 
 📖 **[View Complete Views API Documentation →](VIEWS_API_DOCUMENTATION.md)**

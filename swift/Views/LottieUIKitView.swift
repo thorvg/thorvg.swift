@@ -5,8 +5,11 @@ import Combine
 ///
 /// `LottieUIKitView` provides a UIKit interface for rendering Lottie animations
 /// with support for various playback modes, speed controls, and content scaling options.
+/// **All animation state is managed through the `LottieViewModel`**, which you create and
+/// control externally.
 ///
-/// Basic usage:
+/// ## Basic Usage
+///
 /// ```swift
 /// let viewModel = LottieViewModel(
 ///     lottie: myLottie,
@@ -17,7 +20,12 @@ import Combine
 /// viewModel.play()
 /// ```
 ///
-/// Advanced usage with callbacks:
+/// ## Observing Animation State
+///
+/// **The ViewModel publishes all animation state** via Combine publishers. You can observe
+/// these changes either through the view's callback properties or by subscribing directly
+/// to the ViewModel's publishers:
+///
 /// ```swift
 /// let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
 /// let viewModel = LottieViewModel(
@@ -25,14 +33,46 @@ import Combine
 ///     configuration: config
 /// )
 /// let lottieView = LottieUIKitView(viewModel: viewModel)
+///
+/// // Option 1: Use the view's callbacks
 /// lottieView.onPlaybackStateChanged = { state in
 ///     print("Playback state: \(state)")
 /// }
 /// lottieView.onProgressChanged = { progress in
 ///     print("Progress: \(Int(progress * 100))%")
 /// }
+/// lottieView.onError = { error in
+///     // Handle animation errors
+///     print("Error: \(error)")
+/// }
+///
+/// // Option 2: Subscribe to ViewModel publishers directly
+/// viewModel.$playbackState
+///     .sink { state in
+///         print("State: \(state)")
+///     }
+///     .store(in: &cancellables)
+///
 /// viewModel.play()
 /// ```
+///
+/// ## Content Modes and Render Size
+///
+/// For proper content mode behavior (especially `.scaleAspectFill`), set the `size` parameter
+/// in `LottieViewModel` to match your view's display frame:
+///
+/// ```swift
+/// let config = LottieConfiguration(contentMode: .scaleAspectFill)
+/// let viewModel = LottieViewModel(
+///     lottie: myLottie,
+///     size: CGSize(width: 200, height: 300),  // Match your view's frame
+///     configuration: config
+/// )
+/// let lottieView = LottieUIKitView(viewModel: viewModel)
+/// lottieView.frame = CGRect(x: 0, y: 0, width: 200, height: 300)
+/// ```
+///
+/// See `LottieViewModel` and `LottieConfiguration.ContentMode` for more details.
 public class LottieUIKitView: UIView {
     
     // MARK: - Types
@@ -158,6 +198,18 @@ import SwiftUI
     }
 }
 
+#Preview("UIKit - Slider Seeking") {
+    if #available(iOS 14.0, *) {
+        LottieUIKitPreviewWithSlider()
+    }
+}
+
+#Preview("UIKit - Content Modes") {
+    if #available(iOS 14.0, *) {
+        LottieUIKitPreviewContentModes()
+    }
+}
+
 // MARK: - Preview Helpers
 
 private struct LottieUIKitPreview: UIViewRepresentable {
@@ -232,5 +284,147 @@ private struct UIKitViewWrapper: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: LottieUIKitView, context: Context) {}
+}
+
+@available(iOS 14.0, *)
+private struct LottieUIKitPreviewWithSlider: View {
+    @StateObject private var viewModel: LottieViewModel
+    @State private var sliderValue: Double = 0.0
+    @State private var isDragging: Bool = false
+    
+    init() {
+        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
+              let lottie = try? Lottie(path: path) else {
+            fatalError("Failed to load test Lottie")
+        }
+        
+        _viewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            configuration: .default
+        ))
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            UIKitViewWrapper(viewModel: viewModel)
+                .frame(width: 300, height: 300)
+            
+            VStack(spacing: 8) {
+                Slider(
+                    value: $sliderValue,
+                    in: 0...1,
+                    onEditingChanged: { editing in
+                        if editing {
+                            // Pause on touch down
+                            isDragging = true
+                            viewModel.pause()
+                        } else {
+                            // Resume on touch up
+                            isDragging = false
+                        }
+                    }
+                )
+                .onChange(of: sliderValue) { newValue in
+                    if isDragging {
+                        viewModel.seek(to: newValue)
+                    }
+                }
+                
+                HStack {
+                    Button(viewModel.playbackState == .playing ? "Pause" : "Play") {
+                        if viewModel.playbackState == .playing {
+                            viewModel.pause()
+                        } else {
+                            viewModel.play()
+                        }
+                    }
+                    .buttonStyle(.automatic)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(viewModel.progress * 100))%")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
+        }
+        .padding()
+        .onChange(of: viewModel.progress) { newProgress in
+            if !isDragging {
+                sliderValue = newProgress
+            }
+        }
+    }
+}
+
+@available(iOS 14.0, *)
+private struct LottieUIKitPreviewContentModes: View {
+    @StateObject private var fillViewModel: LottieViewModel
+    @StateObject private var fitViewModel: LottieViewModel
+    
+    init() {
+        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
+              let lottie = try? Lottie(path: path) else {
+            fatalError("Failed to load test Lottie")
+        }
+        
+        // Different frame sizes to demonstrate each mode's behavior
+        
+        // scaleAspectFill: Wide frame - will crop top/bottom if Lottie is square
+        let fillConfig = LottieConfiguration(
+            loopMode: .loop,
+            contentMode: .scaleAspectFill
+        )
+        _fillViewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            size: CGSize(width: 300, height: 150),  // Wide aspect ratio
+            configuration: fillConfig
+        ))
+        
+        // scaleAspectFit: Square frame - renders full animation
+        let fitConfig = LottieConfiguration(
+            loopMode: .loop,
+            contentMode: .scaleAspectFit
+        )
+        _fitViewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            size: CGSize(width: 250, height: 250),  // Square
+            configuration: fitConfig
+        ))
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 32) {
+                VStack(spacing: 8) {
+                    Text("Scale Aspect Fill")
+                        .font(.headline)
+                    Text("Wide frame - crops top/bottom")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    UIKitViewWrapper(viewModel: fillViewModel)
+                        .frame(width: 300, height: 150)
+                        .background(Color.blue.opacity(0.1))
+                        .border(Color.blue, width: 2)
+                        .onAppear { fillViewModel.play() }
+                }
+                
+                VStack(spacing: 8) {
+                    Text("Scale Aspect Fit")
+                        .font(.headline)
+                    Text("Square frame - shows full animation")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    UIKitViewWrapper(viewModel: fitViewModel)
+                        .frame(width: 250, height: 250)
+                        .background(Color.green.opacity(0.1))
+                        .border(Color.green, width: 2)
+                        .onAppear { fitViewModel.play() }
+                }
+            }
+            .padding()
+        }
+    }
 }
 #endif

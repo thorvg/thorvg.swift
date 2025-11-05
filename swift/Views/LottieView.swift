@@ -9,7 +9,6 @@ import SwiftUI
 /// ```swift
 /// @StateObject var viewModel = LottieViewModel(
 ///     lottie: myLottie,
-///     size: CGSize(width: 300, height: 300),
 ///     configuration: .default
 /// )
 ///
@@ -21,13 +20,11 @@ import SwiftUI
 /// ```swift
 /// @StateObject var viewModel = LottieViewModel(
 ///     lottie: myLottie,
-///     size: myLottie.frameSize,
 ///     configuration: LottieConfiguration(loopMode: .loop, speed: 1.0)
 /// )
 ///
 /// VStack {
 ///     LottieView(viewModel: viewModel)
-///         .frame(width: 300, height: 300)
 ///
 ///     HStack {
 ///         Button("Play") { viewModel.play() }
@@ -50,7 +47,7 @@ public struct LottieView: View {
     
     // MARK: - Initialization
     
-    /// Creates a new Lottie view with an external ViewModel.
+    /// Creates a new Lottie view with a ViewModel.
     ///
     /// - Parameter viewModel: The view model managing the animation state and rendering.
     ///   Create the ViewModel externally using `@StateObject` to maintain ownership.
@@ -139,7 +136,6 @@ private struct LottiePreview: View {
     
     var body: some View {
         LottieView(viewModel: viewModel)
-            .frame(width: 300, height: 300)
             .onAppear { viewModel.play() }
     }
 }
@@ -163,7 +159,6 @@ private struct LottiePreviewWithControls: View {
     var body: some View {
         VStack(spacing: 16) {
             LottieView(viewModel: viewModel)
-                .frame(width: 300, height: 300)
             
             HStack(spacing: 12) {
                 Button("Play") { viewModel.play() }

@@ -5,7 +5,7 @@ import CoreMedia
 /// View model responsible for managing Lottie animation playback state and rendering.
 ///
 /// This view model handles the animation loop, frame rendering, playback state,
-/// and configuration of Lottie animations. It uses Combine to publish rendering
+/// and configuration of Lottie animations, as well as publishing rendering
 /// updates and errors to the UI layer.
 public class LottieViewModel: ObservableObject {
     
@@ -52,7 +52,7 @@ public class LottieViewModel: ObservableObject {
     /// Any error that occurred during playback.
     @Published public private(set) var error: PlaybackError?
     
-    /// The current frame index (normalized 0.0 to 1.0).
+    /// The current playback progress (normalized 0.0 to 1.0).
     @Published public private(set) var progress: Double = 0.0
     
     // MARK: - Private Properties
@@ -76,7 +76,7 @@ public class LottieViewModel: ObservableObject {
     ///
     /// - Parameters:
     ///   - lottie: The Lottie animation to play.
-    ///   - size: The rendering size for the animation. If `nil`, uses the animation's intrinsic size.
+    ///   - size: The rendering size for the animation. If `nil`, uses the Lottie's `frameSize`.
     ///   - configuration: Configuration options for playback. Defaults to `.default`.
     ///   - engine: The ThorVG engine to use. Defaults to `.main`.
     public init(
@@ -89,11 +89,8 @@ public class LottieViewModel: ObservableObject {
         self.totalFrames = lottie.numberOfFrames
         self.size = size ?? lottie.frameSize
         self.configuration = configuration
-        
-        // Initialize buffer
-        var buffer = [UInt32](repeating: 0, count: Int(self.size.width * self.size.height))
 
-        // Create renderer
+        var buffer = [UInt32](repeating: 0, count: Int(self.size.width * self.size.height))
         self.renderer = LottieRenderer(
             lottie,
             engine: engine,
@@ -102,7 +99,6 @@ public class LottieViewModel: ObservableObject {
             stride: Int(self.size.width),
             pixelFormat: configuration.pixelFormat
         )
-        
         self.buffer = buffer
         
         // Render initial frame asynchronously to avoid blocking SwiftUI's observation setup
@@ -183,24 +179,19 @@ public class LottieViewModel: ObservableObject {
     
     /// Renders the next frame based on playback configuration.
     private func renderNextFrame() {
-        // Check if animation should continue
         if shouldStopPlayback() {
             handlePlaybackCompletion()
             return
         }
 
-        // Update frame based on loop mode
         updateFrameForNextIteration()
-
-        // Render the current frame
         renderCurrentFrame()
     }
     
-    /// Renders the current frame to the buffer and creates a UIImage.
+    /// Renders the current frame to the buffer and creates a UIImage to publish.
     private func renderCurrentFrame() {
         let contentRect = calculateContentRect()
-        
-        // Calculate frame index from elapsed time
+
         let currentFrame = Float((elapsedTime.seconds / lottie.frameDuration.seconds).rounded(.down))
         
         do {
@@ -223,7 +214,6 @@ public class LottieViewModel: ObservableObject {
             self.cgContext = context
         }
 
-        // Create UIImage from the context
         guard let cgImage = cgContext?.makeImage() else {
             self.error = .imageCreationFailed
             return
@@ -273,10 +263,11 @@ public class LottieViewModel: ObservableObject {
     }
     
     /// Updates the elapsed time for the next iteration based on loop mode and speed.
+    ///
+    /// Each timer tick advances animation time based on render interval * speed
+    /// This means: at speed 1.0, 1 second of real time = 1 second of animation time
+    ///             at speed 2.0, 1 second of real time = 2 seconds of animation time
     private func updateFrameForNextIteration() {
-        // Each timer tick advances animation time based on render interval * speed
-        // This means: at speed 1.0, 1 second of real time = 1 second of animation time
-        //             at speed 2.0, 1 second of real time = 2 seconds of animation time
         let renderInterval = 1.0 / configuration.frameRate
         let timeIncrement = CMTime(
             seconds: renderInterval * configuration.speed,
@@ -340,9 +331,15 @@ extension PixelFormat {
     var bitmapInfo: CGBitmapInfo {
         switch self {
         case .argb:
-            return [.byteOrder32Little, CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)]
+            return [
+                .byteOrder32Little,
+                CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
+            ]
         case .abgr:
-            return [.byteOrder32Big, CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)]
+            return [
+                .byteOrder32Big,
+                CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+            ]
         }
     }
 }

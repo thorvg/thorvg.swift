@@ -10,7 +10,6 @@ import Combine
 /// ```swift
 /// let viewModel = LottieViewModel(
 ///     lottie: myLottie,
-///     size: CGSize(width: 300, height: 300),
 ///     configuration: .default
 /// )
 /// let lottieView = LottieUIKitView(viewModel: viewModel)
@@ -23,7 +22,6 @@ import Combine
 /// let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
 /// let viewModel = LottieViewModel(
 ///     lottie: myLottie,
-///     size: myLottie.frameSize,
 ///     configuration: config
 /// )
 /// let lottieView = LottieUIKitView(viewModel: viewModel)
@@ -210,7 +208,6 @@ private struct LottieUIKitPreviewWithControls: View {
     var body: some View {
         VStack(spacing: 16) {
             UIKitViewWrapper(viewModel: viewModel)
-                .frame(width: 300, height: 300)
             
             HStack(spacing: 12) {
                 Button("Play") { viewModel.play() }

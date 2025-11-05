@@ -7,7 +7,6 @@ import CoreMedia
 /// This view model handles the animation loop, frame rendering, playback state,
 /// and configuration of Lottie animations. It uses Combine to publish rendering
 /// updates and errors to the UI layer.
-@available(iOS 13.0, *)
 public class LottieViewModel: ObservableObject {
     
     // MARK: - Types
@@ -23,7 +22,7 @@ public class LottieViewModel: ObservableObject {
         /// Animation is stopped (at initial frame).
         case stopped
         
-        /// Animation has completed playback. // TODO: Do we need this?
+        /// Animation has completed playback.
         case completed
     }
     
@@ -73,30 +72,30 @@ public class LottieViewModel: ObservableObject {
     ///
     /// - Parameters:
     ///   - lottie: The Lottie animation to play.
-    ///   - size: The rendering size for the animation.
+    ///   - size: The rendering size for the animation. If `nil`, uses the animation's intrinsic size.
     ///   - configuration: Configuration options for playback. Defaults to `.default`.
     ///   - engine: The ThorVG engine to use. Defaults to `.main`.
-    init(
+    public init(
         lottie: Lottie,
-        size: CGSize,
+        size: CGSize? = nil,
         configuration: LottieConfiguration = .default,
         engine: Engine = .main
     ) {
         self.lottie = lottie
         self.totalFrames = lottie.numberOfFrames
-        self.size = size
+        self.size = size ?? lottie.frameSize
         self.configuration = configuration
         
         // Initialize buffer
-        var buffer = [UInt32](repeating: 0, count: Int(size.width * size.height))
-        
+        var buffer = [UInt32](repeating: 0, count: Int(self.size.width * self.size.height))
+
         // Create renderer
         self.renderer = LottieRenderer(
             lottie,
             engine: engine,
-            size: size,
+            size: self.size,
             buffer: &buffer,
-            stride: Int(size.width),
+            stride: Int(self.size.width),
             pixelFormat: configuration.pixelFormat
         )
         
@@ -225,10 +224,7 @@ public class LottieViewModel: ObservableObject {
         let animationSize = lottie.frameSize
         
         switch configuration.contentMode {
-        case .scaleToFill:
-            return CGRect(origin: .zero, size: animationSize)
-            
-        case .scaleAspectFit:
+        case .scaleToFill, .scaleAspectFit:
             return CGRect(origin: .zero, size: animationSize)
             
         case .scaleAspectFill:

@@ -59,10 +59,6 @@ public struct LottieConfiguration {
     /// The pixel format to use for rendering. Defaults to `.argb`.
     public let pixelFormat: PixelFormat
     
-    /// Whether the animation should start playing automatically when the view appears.
-    /// Defaults to `true`.
-    public let autoPlay: Bool
-    
     /// Creates a new Lottie configuration.
     ///
     /// - Parameters:
@@ -71,21 +67,18 @@ public struct LottieConfiguration {
     ///   - contentMode: How content should fit within the view. Defaults to `.scaleAspectFit`.
     ///   - frameRate: The rendering frame rate in fps. Defaults to 30.
     ///   - pixelFormat: The pixel format for rendering. Defaults to `.argb`.
-    ///   - autoPlay: Whether to start playing automatically. Defaults to `true`.
     public init(
         loopMode: LoopMode = .loop,
         speed: Double = 1.0,
         contentMode: ContentMode = .scaleAspectFit,
         frameRate: Double = 30.0,
-        pixelFormat: PixelFormat = .argb,
-        autoPlay: Bool = true
+        pixelFormat: PixelFormat = .argb
     ) {
         self.loopMode = loopMode
         self.speed = speed
         self.contentMode = contentMode
         self.frameRate = frameRate
         self.pixelFormat = pixelFormat
-        self.autoPlay = autoPlay
     }
     
     /// A default configuration with standard settings.

@@ -8,7 +8,7 @@ This document provides comprehensive documentation for the SwiftUI and UIKit vie
 2. [LottieConfiguration](#lottieconfiguration)
 3. [LottieViewModel](#lottieviewmodel)
 4. [LottieView (SwiftUI)](#lottieview-swiftui)
-5. [LottieUIKitView (UIKit)](#lottieu ikitview-uikit)
+5. [LottieUIKitView (UIKit)](#lottieuitkitview-uikit)
 6. [Testing](#testing)
 7. [Usage Examples](#usage-examples)
 
@@ -34,19 +34,21 @@ The Lottie views implementation consists of three main layers:
 
 ### Key Design Principles
 
-1. **Separation of Concerns**: The ViewModel handles all business logic, state management, and rendering coordination, while views focus solely on presentation.
+1. **External ViewModel Pattern**: Views accept a pre-configured `LottieViewModel`, giving users complete control over playback and state observation.
 
-2. **Configuration-Driven**: All playback behavior is configured through the `LottieConfiguration` type, making it easy to customize animations.
+2. **Single Source of Truth**: All playback control (`play()`, `pause()`, `stop()`, `seek()`) happens through the ViewModel, not the views.
 
-3. **Reactive**: Uses Combine framework for reactive updates, ensuring UI stays in sync with animation state.
+3. **Configuration-Driven**: All rendering behavior is configured through the `LottieConfiguration` type, making it easy to customize animations.
 
-4. **Platform-Specific**: Views are conditionally compiled for iOS only, as they depend on UIKit.
+4. **Reactive**: Uses Combine framework for reactive updates, ensuring UI stays in sync with animation state.
+
+5. **Platform-Specific**: Views are conditionally compiled for iOS only, as they depend on UIKit.
 
 ---
 
 ## LottieConfiguration
 
-The `LottieConfiguration` struct provides a declarative way to configure Lottie animation playback.
+The `LottieConfiguration` struct provides a declarative way to configure Lottie animation rendering and playback behavior.
 
 ### Properties
 
@@ -78,7 +80,6 @@ public enum ContentMode {
 | `contentMode` | `ContentMode` | `.scaleAspectFit` | How content fits in view |
 | `frameRate` | `Double` | `30.0` | Rendering frame rate (fps) |
 | `pixelFormat` | `PixelFormat` | `.argb` | Pixel format for rendering |
-| `autoPlay` | `Bool` | `true` | Start playing automatically |
 
 ### Example
 
@@ -88,8 +89,7 @@ let config = LottieConfiguration(
     speed: 1.5,
     contentMode: .scaleAspectFit,
     frameRate: 60.0,
-    pixelFormat: .argb,
-    autoPlay: true
+    pixelFormat: .argb
 )
 ```
 
@@ -97,7 +97,7 @@ let config = LottieConfiguration(
 
 ## LottieViewModel
 
-The `LottieViewModel` is an `ObservableObject` that manages animation playback state and rendering.
+The `LottieViewModel` is an `ObservableObject` that manages animation playback state and rendering. Users create and own the ViewModel, then pass it to views.
 
 ### Published Properties
 
@@ -164,7 +164,7 @@ public func seek(toFrame frame: Float)
 
 ## LottieView (SwiftUI)
 
-A SwiftUI view for displaying Lottie animations with declarative configuration.
+A SwiftUI view for displaying Lottie animations. The view accepts an external `LottieViewModel` for complete control over playback and state observation.
 
 ### Basic Usage
 
@@ -173,10 +173,23 @@ import SwiftUI
 import ThorVGSwift
 
 struct ContentView: View {
-    var body: some View {
-        if let lottie = try? Lottie(path: "animation.json") {
-            LottieView(lottie: lottie)
+    @StateObject private var viewModel: LottieViewModel
+    
+    init() {
+        guard let lottie = try? Lottie(path: "animation.json") else {
+            fatalError("Failed to load Lottie")
         }
+        
+        _viewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            size: CGSize(width: 300, height: 300),
+            configuration: .default
+        ))
+    }
+    
+    var body: some View {
+        LottieView(viewModel: viewModel)
+            .onAppear { viewModel.play() }
     }
 }
 ```
@@ -184,31 +197,21 @@ struct ContentView: View {
 ### Initialization
 
 ```swift
-public init(
-    lottie: Lottie,
-    size: CGSize? = nil,
-    configuration: LottieConfiguration = .default,
-    engine: Engine = .main
-)
+public init(viewModel: LottieViewModel)
 ```
 
 **Parameters:**
-- `lottie`: The Lottie animation to display
-- `size`: Rendering size (uses animation's intrinsic size if nil)
-- `configuration`: Playback configuration
-- `engine`: ThorVG engine to use
+- `viewModel`: The view model managing animation state and rendering. Create using `@StateObject` to maintain ownership.
 
 ### Accessing ViewModel Properties
 
-To access playback state, progress, and errors, you can observe the view model directly:
+Since you create the ViewModel externally, you have direct access to all its properties:
 
 ```swift
 struct ContentView: View {
-    let lottie: Lottie
     @StateObject private var viewModel: LottieViewModel
     
     init(lottie: Lottie) {
-        self.lottie = lottie
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
             size: CGSize(width: 300, height: 300)
@@ -217,10 +220,10 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Image(uiImage: viewModel.renderedFrame ?? UIImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            LottieView(viewModel: viewModel)
+                .frame(width: 300, height: 300)
             
+            // Direct access to ViewModel properties
             Text("Progress: \(Int(viewModel.progress * 100))%")
             Text("State: \(String(describing: viewModel.playbackState))")
             
@@ -228,6 +231,16 @@ struct ContentView: View {
                 Text("Error: \(error.localizedDescription)")
                     .foregroundColor(.red)
             }
+            
+            // Direct playback control
+            HStack {
+                Button("Play") { viewModel.play() }
+                Button("Pause") { viewModel.pause() }
+                Button("Stop") { viewModel.stop() }
+            }
+        }
+        .onChange(of: viewModel.playbackState) { _, state in
+            print("Playback state changed: \(state)")
         }
     }
 }
@@ -235,14 +248,13 @@ struct ContentView: View {
 
 ### Lifecycle
 
-- **onAppear**: Automatically starts playback if `autoPlay` is true
-- **onDisappear**: Pauses playback to conserve resources
+- **onDisappear**: Automatically pauses playback to conserve resources
 
 ---
 
 ## LottieUIKitView (UIKit)
 
-A UIKit view for displaying Lottie animations with similar functionality to the SwiftUI version.
+A UIKit view for displaying Lottie animations. Like the SwiftUI view, it accepts an external `LottieViewModel`.
 
 ### Basic Usage
 
@@ -251,15 +263,26 @@ import UIKit
 import ThorVGSwift
 
 class ViewController: UIViewController {
+    private var viewModel: LottieViewModel!
+    private var lottieView: LottieUIKitView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let lottie = try? Lottie(path: "animation.json") {
-            let lottieView = LottieUIKitView(lottie: lottie)
-            view.addSubview(lottieView)
-            
-            // Setup constraints...
-        }
+        guard let lottie = try? Lottie(path: "animation.json") else { return }
+        
+        viewModel = LottieViewModel(
+            lottie: lottie,
+            size: CGSize(width: 300, height: 300),
+            configuration: .default
+        )
+        
+        lottieView = LottieUIKitView(viewModel: viewModel)
+        view.addSubview(lottieView)
+        
+        // Setup constraints...
+        
+        viewModel.play()
     }
 }
 ```
@@ -267,63 +290,49 @@ class ViewController: UIViewController {
 ### Initialization
 
 ```swift
-// Basic initializer
-public init(
-    lottie: Lottie,
-    size: CGSize? = nil,
-    configuration: LottieConfiguration = .default,
-    engine: Engine = .main
-)
-
-// Frame-based initializer
-public convenience init(
-    frame: CGRect,
-    lottie: Lottie,
-    configuration: LottieConfiguration = .default,
-    engine: Engine = .main
-)
+public init(viewModel: LottieViewModel)
 ```
+
+**Parameters:**
+- `viewModel`: The view model managing animation state and rendering.
 
 ### Public Properties
 
 ```swift
-// Read-only state properties
-public var playbackState: LottieViewModel.PlaybackState { get }
-public var progress: Double { get }
-public var error: LottieViewModel.PlaybackError? { get }
+// Access to the ViewModel
+public let viewModel: LottieViewModel
 
-// Callbacks
+// Callbacks (optional, for convenience)
 public var onPlaybackStateChanged: ((LottieViewModel.PlaybackState) -> Void)?
 public var onError: ((LottieViewModel.PlaybackError) -> Void)?
 public var onProgressChanged: ((Double) -> Void)?
 ```
 
-### Methods
+### Playback Control
+
+All playback control happens through the ViewModel:
 
 ```swift
-// Playback control
-public func play()
-public func pause()
-public func stop()
-
-// Seeking
-public func seek(to progress: Double)
-public func seek(toFrame frame: Float)
+// Directly on ViewModel
+viewModel.play()
+viewModel.pause()
+viewModel.stop()
+viewModel.seek(to: 0.5)
+viewModel.seek(toFrame: 10)
 ```
 
 ### Example with Callbacks
 
 ```swift
-let config = LottieConfiguration(
-    loopMode: .playOnce,
-    autoPlay: false
-)
+let config = LottieConfiguration(loopMode: .playOnce)
 
-let lottieView = LottieUIKitView(
+let viewModel = LottieViewModel(
     lottie: myLottie,
     size: CGSize(width: 300, height: 300),
     configuration: config
 )
+
+let lottieView = LottieUIKitView(viewModel: viewModel)
 
 lottieView.onPlaybackStateChanged = { state in
     if state == .completed {
@@ -335,7 +344,7 @@ lottieView.onProgressChanged = { progress in
     progressBar.progress = Float(progress)
 }
 
-lottieView.play()
+viewModel.play()
 ```
 
 ### View Hierarchy
@@ -357,7 +366,8 @@ Tests for the ViewModel layer covering:
 - Loop modes (playOnce, loop, repeat, autoReverse)
 - Published property updates
 - Error handling
-- Speed control
+- Speed control (independent of frame rate)
+- Frame rate control (rendering frequency)
 - Content modes
 - Memory management
 
@@ -388,6 +398,8 @@ View layer testing is accomplished through **SwiftUI Previews** which allow for:
 - Visual verification of rendering
 - Interactive testing of playback controls
 - Testing various configurations and loop modes
+- Testing different speeds (0.5x, 1x, 2x)
+- Testing different frame rates (30fps, 60fps)
 - Real-time debugging
 
 **Location**: Preview implementations in `LottieView.swift` and `LottieUIKitView.swift`
@@ -412,23 +424,32 @@ Or use Xcode's test runner for interactive testing with Previews.
 ```swift
 // SwiftUI
 struct SimpleAnimationView: View {
-    let lottie = try! Lottie(path: "loader.json")
+    @StateObject private var viewModel: LottieViewModel
+    
+    init() {
+        let lottie = try! Lottie(path: "loader.json")
+        _viewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            size: CGSize(width: 100, height: 100),
+            configuration: .default
+        ))
+    }
     
     var body: some View {
-        LottieView(
-            lottie: lottie,
-            size: CGSize(width: 100, height: 100)
-        )
+        LottieView(viewModel: viewModel)
+            .onAppear { viewModel.play() }
     }
 }
 
 // UIKit
 let lottie = try! Lottie(path: "loader.json")
-let lottieView = LottieUIKitView(
+let viewModel = LottieViewModel(
     lottie: lottie,
     size: CGSize(width: 100, height: 100)
 )
+let lottieView = LottieUIKitView(viewModel: viewModel)
 view.addSubview(lottieView)
+viewModel.play()
 ```
 
 ### Example 2: Play Once with Completion Handler
@@ -436,46 +457,43 @@ view.addSubview(lottieView)
 ```swift
 // SwiftUI
 struct OneShotAnimationView: View {
-    let lottie = try! Lottie(path: "success.json")
     @StateObject private var viewModel: LottieViewModel
     @State private var isComplete = false
     
     init(lottie: Lottie) {
-        self.lottie = lottie
+        let config = LottieConfiguration(loopMode: .playOnce)
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
             size: CGSize(width: 300, height: 300),
-            configuration: LottieConfiguration(loopMode: .playOnce)
+            configuration: config
         ))
     }
     
     var body: some View {
-        VStack {
-            Image(uiImage: viewModel.renderedFrame ?? UIImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-        }
-        .onChange(of: viewModel.playbackState) { state in
-            if state == .completed {
-                isComplete = true
-                // Navigate away or show next screen
+        LottieView(viewModel: viewModel)
+            .frame(width: 300, height: 300)
+            .onChange(of: viewModel.playbackState) { _, state in
+                if state == .completed {
+                    isComplete = true
+                    // Navigate away or show next screen
+                }
             }
-        }
-        .onAppear {
-            viewModel.play()
-        }
+            .onAppear { viewModel.play() }
     }
 }
 
 // UIKit
 let config = LottieConfiguration(loopMode: .playOnce)
-let lottieView = LottieUIKitView(lottie: lottie, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, configuration: config)
+let lottieView = LottieUIKitView(viewModel: viewModel)
 
 lottieView.onPlaybackStateChanged = { state in
     if state == .completed {
         // Navigate away or show next screen
     }
 }
+
+viewModel.play()
 ```
 
 ### Example 3: Manual Playback Control
@@ -483,23 +501,18 @@ lottieView.onPlaybackStateChanged = { state in
 ```swift
 // SwiftUI
 struct ControlledAnimationView: View {
-    let lottie: Lottie
     @StateObject private var viewModel: LottieViewModel
     
     init(lottie: Lottie) {
-        self.lottie = lottie
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 300, height: 300),
-            configuration: LottieConfiguration(autoPlay: false)
+            size: CGSize(width: 300, height: 300)
         ))
     }
     
     var body: some View {
         VStack {
-            Image(uiImage: viewModel.renderedFrame ?? UIImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            LottieView(viewModel: viewModel)
                 .frame(width: 300, height: 300)
             
             HStack {
@@ -512,17 +525,17 @@ struct ControlledAnimationView: View {
 }
 
 // UIKit
-let config = LottieConfiguration(autoPlay: false)
-let lottieView = LottieUIKitView(lottie: lottie, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, size: size)
+let lottieView = LottieUIKitView(viewModel: viewModel)
 
 // Control buttons
 playButton.addTarget(self, action: #selector(play), for: .touchUpInside)
 pauseButton.addTarget(self, action: #selector(pause), for: .touchUpInside)
 stopButton.addTarget(self, action: #selector(stop), for: .touchUpInside)
 
-@objc func play() { lottieView.play() }
-@objc func pause() { lottieView.pause() }
-@objc func stop() { lottieView.stop() }
+@objc func play() { viewModel.play() }
+@objc func pause() { viewModel.pause() }
+@objc func stop() { viewModel.stop() }
 ```
 
 ### Example 4: Progress Tracking with Slider
@@ -530,23 +543,18 @@ stopButton.addTarget(self, action: #selector(stop), for: .touchUpInside)
 ```swift
 // SwiftUI
 struct ProgressAnimationView: View {
-    let lottie: Lottie
     @StateObject private var viewModel: LottieViewModel
     
     init(lottie: Lottie) {
-        self.lottie = lottie
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
-            size: CGSize(width: 300, height: 300),
-            configuration: LottieConfiguration(autoPlay: false)
+            size: CGSize(width: 300, height: 300)
         ))
     }
     
     var body: some View {
         VStack {
-            Image(uiImage: viewModel.renderedFrame ?? UIImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            LottieView(viewModel: viewModel)
                 .frame(width: 300, height: 300)
             
             Slider(value: Binding(
@@ -560,8 +568,8 @@ struct ProgressAnimationView: View {
 }
 
 // UIKit
-let config = LottieConfiguration(autoPlay: false)
-let lottieView = LottieUIKitView(lottie: lottie, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, size: size)
+let lottieView = LottieUIKitView(viewModel: viewModel)
 
 lottieView.onProgressChanged = { progress in
     progressSlider.value = Float(progress)
@@ -569,51 +577,84 @@ lottieView.onProgressChanged = { progress in
 }
 
 @objc func sliderValueChanged(_ slider: UISlider) {
-    lottieView.seek(to: Double(slider.value))
+    viewModel.seek(to: Double(slider.value))
 }
 ```
 
-### Example 5: Fast Playback
+### Example 5: Custom Speed
 
 ```swift
 let config = LottieConfiguration(
     loopMode: .loop,
-    speed: 2.0,  // 2x speed
-    frameRate: 60.0
+    speed: 2.0  // 2x speed
 )
 
 // SwiftUI
-LottieView(lottie: lottie, configuration: config)
+@StateObject var viewModel = LottieViewModel(
+    lottie: lottie,
+    size: size,
+    configuration: config
+)
+LottieView(viewModel: viewModel)
+    .onAppear { viewModel.play() }
 
 // UIKit
-let lottieView = LottieUIKitView(lottie: lottie, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: config)
+let lottieView = LottieUIKitView(viewModel: viewModel)
+viewModel.play()
 ```
 
-### Example 6: Auto-Reverse Animation
+### Example 6: High Frame Rate
 
 ```swift
 let config = LottieConfiguration(
-    loopMode: .autoReverse,
-    speed: 1.0
+    loopMode: .loop,
+    frameRate: 60.0  // Smoother rendering
 )
 
 // SwiftUI
-LottieView(lottie: lottie, configuration: config)
+@StateObject var viewModel = LottieViewModel(
+    lottie: lottie,
+    size: size,
+    configuration: config
+)
+LottieView(viewModel: viewModel)
+    .onAppear { viewModel.play() }
 
 // UIKit
-let lottieView = LottieUIKitView(lottie: lottie, configuration: config)
+let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: config)
+let lottieView = LottieUIKitView(viewModel: viewModel)
+viewModel.play()
 ```
 
-### Example 7: Error Handling
+### Example 7: Auto-Reverse Animation
+
+```swift
+let config = LottieConfiguration(loopMode: .autoReverse)
+
+// SwiftUI
+@StateObject var viewModel = LottieViewModel(
+    lottie: lottie,
+    size: size,
+    configuration: config
+)
+LottieView(viewModel: viewModel)
+    .onAppear { viewModel.play() }
+
+// UIKit
+let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: config)
+let lottieView = LottieUIKitView(viewModel: viewModel)
+viewModel.play()
+```
+
+### Example 8: Error Handling
 
 ```swift
 // SwiftUI
 struct SafeAnimationView: View {
-    let lottie: Lottie
     @StateObject private var viewModel: LottieViewModel
     
     init(lottie: Lottie) {
-        self.lottie = lottie
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
             size: CGSize(width: 300, height: 300)
@@ -622,22 +663,22 @@ struct SafeAnimationView: View {
     
     var body: some View {
         VStack {
-            Image(uiImage: viewModel.renderedFrame ?? UIImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+            LottieView(viewModel: viewModel)
+                .frame(width: 300, height: 300)
             
             if let error = viewModel.error {
                 Text("Error: \(error.localizedDescription)")
                     .foregroundColor(.red)
             }
         }
-        .onAppear {
-            viewModel.play()
-        }
+        .onAppear { viewModel.play() }
     }
 }
 
 // UIKit
+let viewModel = LottieViewModel(lottie: lottie, size: size)
+let lottieView = LottieUIKitView(viewModel: viewModel)
+
 lottieView.onError = { [weak self] error in
     let alert = UIAlertController(
         title: "Animation Error",
@@ -647,6 +688,8 @@ lottieView.onError = { [weak self] error in
     alert.addAction(UIAlertAction(title: "OK", style: .default))
     self?.present(alert, animated: true)
 }
+
+viewModel.play()
 ```
 
 ---
@@ -671,42 +714,55 @@ do {
 }
 ```
 
-### 2. Size Considerations
+### 2. ViewModel Ownership
+
+Always use `@StateObject` in SwiftUI to maintain ViewModel ownership:
+
+```swift
+// ✅ Good: StateObject maintains ownership
+@StateObject private var viewModel = LottieViewModel(...)
+
+// ❌ Bad: ObservedObject doesn't maintain ownership
+@ObservedObject private var viewModel = LottieViewModel(...)
+```
+
+### 3. Size Considerations
 
 For best performance, specify an appropriate size:
 
 ```swift
 // Good: Explicit size matching your layout
-LottieView(lottie: lottie, size: CGSize(width: 300, height: 300))
+LottieViewModel(lottie: lottie, size: CGSize(width: 300, height: 300))
 
 // Acceptable: Uses intrinsic size (may be very large)
-LottieView(lottie: lottie)
+LottieViewModel(lottie: lottie, size: lottie.frameSize)
 ```
 
-### 3. Auto-Play Configuration
+### 4. Explicit Playback Control
 
-Consider disabling auto-play for user-controlled animations:
+Start playback explicitly when appropriate:
 
 ```swift
-let config = LottieConfiguration(autoPlay: false)
-let lottieView = LottieUIKitView(lottie: lottie, configuration: config)
+// SwiftUI
+LottieView(viewModel: viewModel)
+    .onAppear { viewModel.play() }
 
-// Start playback when appropriate
-button.addTarget(self, action: #selector(playAnimation), for: .touchUpInside)
+// UIKit
+viewModel.play()
 ```
 
-### 4. Memory Management
+### 5. Memory Management
 
 Views automatically clean up resources, but for long-lived animations:
 
 ```swift
 override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    lottieView.stop()  // Stop and reset
+    viewModel.stop()  // Stop and reset
 }
 ```
 
-### 5. Configuration Reuse
+### 6. Configuration Reuse
 
 Create reusable configurations:
 
@@ -714,8 +770,7 @@ Create reusable configurations:
 extension LottieConfiguration {
     static let onboarding = LottieConfiguration(
         loopMode: .playOnce,
-        speed: 1.0,
-        autoPlay: true
+        speed: 1.0
     )
     
     static let loader = LottieConfiguration(
@@ -723,10 +778,15 @@ extension LottieConfiguration {
         speed: 1.5,
         frameRate: 30.0
     )
+    
+    static let highQuality = LottieConfiguration(
+        loopMode: .loop,
+        frameRate: 60.0
+    )
 }
 
 // Usage
-LottieView(lottie: lottie, configuration: .onboarding)
+let viewModel = LottieViewModel(lottie: lottie, size: size, configuration: .onboarding)
 ```
 
 ---
@@ -748,21 +808,27 @@ This package is designed exclusively for iOS and requires UIKit.
 
 **Solution**: Check that:
 1. The Lottie file is valid and loads successfully
-2. `autoPlay` is set to `true` or you've called `play()` manually
+2. You've called `viewModel.play()` manually
 3. The view is added to the view hierarchy (UIKit) or appears (SwiftUI)
 
 ### Issue: Poor performance
 
 **Solution**:
 1. Reduce the rendering size
-2. Lower the frame rate
+2. Lower the frame rate (default 30fps is usually sufficient)
 3. Consider using a simpler animation
 
 ### Issue: Animation appears distorted
 
 **Solution**: Check the `contentMode` configuration:
-- Use `.scaleAspectFit` to maintain aspect ratio
+- Use `.scaleAspectFit` to maintain aspect ratio (default)
 - Use `.scaleToFill` if distortion is acceptable
+
+### Issue: Animation plays too fast/slow at higher frame rates
+
+**Solution**: This is working correctly! `frameRate` and `speed` are decoupled:
+- `frameRate` controls rendering smoothness (30fps vs 60fps)
+- `speed` controls playback rate (1.0x, 2.0x, etc.)
 
 ### Issue: Memory warnings
 
@@ -776,4 +842,3 @@ This package is designed exclusively for iOS and requires UIKit.
 ## License
 
 This implementation is part of the ThorVGSwift library. See LICENSE file for details.
-

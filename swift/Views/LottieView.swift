@@ -7,67 +7,64 @@ import SwiftUI
 ///
 /// Basic usage:
 /// ```swift
-/// guard let lottie = try? Lottie(path: "animation.json") else { return }
-/// LottieView(lottie: lottie)
-/// ```
-///
-/// Advanced usage with configuration:
-/// ```swift
-/// let config = LottieConfiguration(
-///     loopMode: .loop,
-///     speed: 1.0,
-///     contentMode: .scaleAspectFit
-/// )
-/// LottieView(
+/// @StateObject var viewModel = LottieViewModel(
 ///     lottie: myLottie,
 ///     size: CGSize(width: 300, height: 300),
-///     configuration: config
+///     configuration: .default
 /// )
+///
+/// LottieView(viewModel: viewModel)
+///     .onAppear { viewModel.play() }
+/// ```
+///
+/// Advanced usage with manual controls:
+/// ```swift
+/// @StateObject var viewModel = LottieViewModel(
+///     lottie: myLottie,
+///     size: myLottie.frameSize,
+///     configuration: LottieConfiguration(loopMode: .loop, speed: 1.0)
+/// )
+///
+/// VStack {
+///     LottieView(viewModel: viewModel)
+///         .frame(width: 300, height: 300)
+///
+///     HStack {
+///         Button("Play") { viewModel.play() }
+///         Button("Pause") { viewModel.pause() }
+///         Button("Stop") { viewModel.stop() }
+///     }
+///
+///     Text("Progress: \(viewModel.progress)")
+/// }
+/// .onChange(of: viewModel.playbackState) { _, state in
+///     print("State changed: \(state)")
+/// }
 /// ```
 @available(iOS 14.0, *)
 public struct LottieView: View {
     
     // MARK: - Properties
     
-    @StateObject private var viewModel: LottieViewModel
-    private let shouldAutoPlay: Bool
+    @ObservedObject public var viewModel: LottieViewModel
     
     // MARK: - Initialization
     
-    /// Creates a new Lottie view.
+    /// Creates a new Lottie view with an external ViewModel.
     ///
-    /// - Parameters:
-    ///   - lottie: The Lottie animation to display.
-    ///   - size: The rendering size for the animation. If `nil`, uses the animation's intrinsic size.
-    ///   - configuration: Configuration options for playback. Defaults to `.default`.
-    ///   - engine: The ThorVG engine to use. Defaults to `.main`.
-    public init(
-        lottie: Lottie,
-        size: CGSize? = nil,
-        configuration: LottieConfiguration = .default,
-        engine: Engine = .main
-    ) {
-        self.shouldAutoPlay = configuration.autoPlay
-        _viewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            size: size ?? lottie.frameSize,
-            configuration: configuration,
-            engine: engine
-        ))
+    /// - Parameter viewModel: The view model managing the animation state and rendering.
+    ///   Create the ViewModel externally using `@StateObject` to maintain ownership.
+    public init(viewModel: LottieViewModel) {
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
     }
     
     // MARK: - Body
     
     public var body: some View {
         content()
-        .onAppear {
-            if shouldAutoPlay {
-                viewModel.play()
+            .onDisappear {
+                viewModel.pause()
             }
-        }
-        .onDisappear {
-            viewModel.pause()
-        }
     }
     
     // MARK: - Content
@@ -84,150 +81,99 @@ public struct LottieView: View {
     }
 }
 
-// MARK: - Access to ViewModel
-//
-// Note: To observe playback state, errors, or progress, access the viewModel's
-// published properties directly using standard SwiftUI modifiers like .onChange()
-// However, the viewModel is private, so for now users should use the UIKit view
-// if they need callbacks, or we can add a way to expose the viewModel.
-//
-// TODO: Do I need to make these available? See if I can use proper ViewModifiers
-
 // MARK: - Previews
 
 #if DEBUG
 @available(iOS 14.0, *)
-#Preview("SwiftUI View - Loop") {
-    if let path = Bundle.module.path(forResource: "test", ofType: "json"),
-       let lottie = try? Lottie(path: path) {
-        
-        let configuration = LottieConfiguration(
-            loopMode: .loop,
-            speed: 1.0,
-            contentMode: .scaleAspectFit,
-            frameRate: 30.0,
-            autoPlay: true
-        )
-        
-        LottieView(lottie: lottie, configuration: configuration)
-            .frame(width: 300, height: 300)
-            .background(Color.gray.opacity(0.2))
-    } else {
-        Text("Failed to load Lottie file")
-    }
+#Preview("SwiftUI - Loop") {
+    LottiePreview(loopMode: .loop)
 }
 
 @available(iOS 14.0, *)
-#Preview("SwiftUI View - Play Once") {
-    if let path = Bundle.module.path(forResource: "test", ofType: "json"),
-       let lottie = try? Lottie(path: path) {
-        
-        let configuration = LottieConfiguration(
-            loopMode: .playOnce,
-            speed: 1.0,
-            contentMode: .scaleAspectFit,
-            frameRate: 30.0,
-            autoPlay: true
-        )
-        
-        LottieView(lottie: lottie, configuration: configuration)
-            .frame(width: 300, height: 300)
-            .background(Color.blue.opacity(0.1))
-    } else {
-        Text("Failed to load Lottie file")
-    }
+#Preview("SwiftUI - Once") {
+    LottiePreview(loopMode: .playOnce)
 }
 
 @available(iOS 14.0, *)
-#Preview("SwiftUI View - Fast Speed") {
-    if let path = Bundle.module.path(forResource: "test", ofType: "json"),
-       let lottie = try? Lottie(path: path) {
-        
-        let configuration = LottieConfiguration(
-            loopMode: .loop,
-            speed: 2.0,
-            contentMode: .scaleAspectFit,
-            frameRate: 30.0,
-            autoPlay: true
-        )
-        
-        LottieView(lottie: lottie, configuration: configuration)
-            .frame(width: 300, height: 300)
-            .background(Color.green.opacity(0.1))
-    } else {
-        Text("Failed to load Lottie file")
-    }
+#Preview("SwiftUI - 2x Speed") {
+    LottiePreview(speed: 2.0)
 }
 
 @available(iOS 14.0, *)
-#Preview("SwiftUI View - No AutoPlay") {
-    if let path = Bundle.module.path(forResource: "test", ofType: "json"),
-       let lottie = try? Lottie(path: path) {
-        
-        let configuration = LottieConfiguration(
-            loopMode: .loop,
-            speed: 1.0,
-            autoPlay: false
-        )
-        
-        InteractiveSwiftUIPreview(lottie: lottie, configuration: configuration)
-    } else {
-        Text("Failed to load Lottie file")
-    }
+#Preview("SwiftUI - 0.5x Speed") {
+    LottiePreview(speed: 0.5)
 }
 
 @available(iOS 14.0, *)
-private struct InteractiveSwiftUIPreview: View {
-    let lottie: Lottie
-    let configuration: LottieConfiguration
+#Preview("SwiftUI - 60fps") {
+    LottiePreview(frameRate: 60.0)
+}
+
+@available(iOS 14.0, *)
+#Preview("SwiftUI - Manual Controls") {
+    LottiePreviewWithControls()
+}
+
+// MARK: - Preview Helpers
+
+@available(iOS 14.0, *)
+private struct LottiePreview: View {
     @StateObject private var viewModel: LottieViewModel
     
-    init(lottie: Lottie, configuration: LottieConfiguration) {
-        self.lottie = lottie
-        self.configuration = configuration
+    init(
+        loopMode: LottieConfiguration.LoopMode = .loop,
+        speed: Double = 1.0,
+        frameRate: Double = 30.0
+    ) {
+        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
+              let lottie = try? Lottie(path: path) else {
+            fatalError("Failed to load test Lottie")
+        }
+        
+        let config = LottieConfiguration(loopMode: loopMode, speed: speed, frameRate: frameRate)
         _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
-            size: lottie.frameSize,
-            configuration: configuration
+            configuration: config
         ))
     }
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("AutoPlay Disabled - Manual Controls")
+        LottieView(viewModel: viewModel)
+            .frame(width: 300, height: 300)
+            .onAppear { viewModel.play() }
+    }
+}
+
+@available(iOS 14.0, *)
+private struct LottiePreviewWithControls: View {
+    @StateObject private var viewModel: LottieViewModel
+    
+    init() {
+        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
+              let lottie = try? Lottie(path: path) else {
+            fatalError("Failed to load test Lottie")
+        }
+        
+        _viewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            configuration: .default
+        ))
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            LottieView(viewModel: viewModel)
+                .frame(width: 300, height: 300)
+            
+            HStack(spacing: 12) {
+                Button("Play") { viewModel.play() }
+                Button("Pause") { viewModel.pause() }
+                Button("Stop") { viewModel.stop() }
+            }
+            .buttonStyle(.automatic)
+
+            Text("Progress: \(Int(viewModel.progress * 100))%")
                 .font(.caption)
-                .foregroundColor(.secondary)
-            
-            if let image = viewModel.renderedFrame {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 300, height: 300)
-                    .background(Color.orange.opacity(0.1))
-            } else {
-                Color.clear
-                    .frame(width: 300, height: 300)
-            }
-            
-            HStack(spacing: 15) {
-                Button("Play") {
-                    viewModel.play()
-                }
-                .buttonStyle(.plain)
-
-                Button("Pause") {
-                    viewModel.pause()
-                }
-                .buttonStyle(.plain)
-
-                Button("Stop") {
-                    viewModel.stop()
-                }
-                .buttonStyle(.plain)
-            }
-            
-            Text("State: \(String(describing: viewModel.playbackState))")
-                .font(.caption2)
                 .foregroundColor(.secondary)
         }
         .padding()

@@ -112,18 +112,21 @@ import SwiftUI
 import ThorVGSwift
 
 struct ContentView: View {
-    let lottie = try! Lottie(path: "animation.json")
+    @StateObject private var viewModel: LottieViewModel
     
-    var body: some View {
-        LottieView(
+    init() {
+        let lottie = try! Lottie(path: "animation.json")
+        let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
+        _viewModel = StateObject(wrappedValue: LottieViewModel(
             lottie: lottie,
             size: CGSize(width: 300, height: 300),
-            configuration: LottieConfiguration(
-                loopMode: .loop,
-                speed: 1.0,
-                autoPlay: true
-            )
-        )
+            configuration: config
+        ))
+    }
+    
+    var body: some View {
+        LottieView(viewModel: viewModel)
+            .onAppear { viewModel.play() }
     }
 }
 ```
@@ -135,22 +138,26 @@ import UIKit
 import ThorVGSwift
 
 class ViewController: UIViewController {
+    private var viewModel: LottieViewModel!
+    private var lottieView: LottieUIKitView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         let lottie = try! Lottie(path: "animation.json")
-        let lottieView = LottieUIKitView(
+        let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
+        
+        viewModel = LottieViewModel(
             lottie: lottie,
             size: CGSize(width: 300, height: 300),
-            configuration: LottieConfiguration(
-                loopMode: .loop,
-                speed: 1.0,
-                autoPlay: true
-            )
+            configuration: config
         )
+        lottieView = LottieUIKitView(viewModel: viewModel)
         
         view.addSubview(lottieView)
         // Add constraints...
+        
+        viewModel.play()
     }
 }
 ```

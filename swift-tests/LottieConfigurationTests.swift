@@ -12,7 +12,6 @@ final class LottieConfigurationTests: XCTestCase {
         XCTAssertEqual(config.contentMode, .scaleAspectFit)
         XCTAssertEqual(config.frameRate, 30.0)
         XCTAssertEqual(config.pixelFormat, .argb)
-        XCTAssertTrue(config.autoPlay)
     }
     
     func testInit_WithCustomValues_StoresCorrectly() {
@@ -21,8 +20,7 @@ final class LottieConfigurationTests: XCTestCase {
             speed: 2.0,
             contentMode: .scaleAspectFit,
             frameRate: 30.0,
-            pixelFormat: .abgr,
-            autoPlay: false
+            pixelFormat: .abgr
         )
         
         XCTAssertEqual(config.loopMode, .playOnce)
@@ -30,7 +28,6 @@ final class LottieConfigurationTests: XCTestCase {
         XCTAssertEqual(config.contentMode, .scaleAspectFit)
         XCTAssertEqual(config.frameRate, 30.0)
         XCTAssertEqual(config.pixelFormat, .abgr)
-        XCTAssertFalse(config.autoPlay)
     }
     
     func testInit_WithPartialValues_UsesDefaults() {
@@ -42,7 +39,6 @@ final class LottieConfigurationTests: XCTestCase {
         XCTAssertEqual(config.contentMode, .scaleAspectFit)
         XCTAssertEqual(config.frameRate, 30.0)
         XCTAssertEqual(config.pixelFormat, .argb)
-        XCTAssertTrue(config.autoPlay)
     }
 }
 

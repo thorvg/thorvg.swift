@@ -250,4 +250,17 @@ swift test     # Run tests
 > If you're on an Intel Mac and want x86_64 simulator support, you can modify `build_frameworks.sh` to include both architectures for the simulator. By default, only arm64 is built for simulator (Intel Macs can use it via Rosetta 2).
 
 ## Contributing
-Contributions are welcome! If you'd like to help, feel free to open an issue or submit a pull request.
+
+Contributions are welcome! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed information about:
+- Project structure
+- How to build from source
+- What to commit to the repository
+- How to update the XCFramework
+
+### Additional Documentation
+
+- [Migration Summary](docs/MIGRATION_SUMMARY.md) - Details about the build system migration
+- [Cross-Compilation Notes](docs/CROSS_COMPILATION_NOTES.md) - Technical details about cross-compilation
+- [Upstream Contribution Guide](docs/UPSTREAM_CONTRIBUTION_GUIDE.md) - Guide for contributing to ThorVG upstream
+
+Feel free to open an issue or submit a pull request!

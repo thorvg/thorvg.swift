@@ -9,7 +9,7 @@
 ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://github.com/thorvg/thorvg), providing native support for vector graphics in Swift applications. This package currently only supports rendering Lottie animations and is actively evolving to include more features.
 
 **ThorVG Version:** `v0.14.7` (commit `e3a6bf`)   
-**Supported Platforms:** iOS (minimum deployment target: iOS 13.0)
+**Supported Platforms:** iOS 13.0+, macOS 10.15+
 
 ## Contents
 - [Installation](#installation)
@@ -200,26 +200,54 @@ The full documentation includes:
 - Testing strategies and troubleshooting guides
 
 ## Build
-Follow these steps to configure your environment and build the ThorVG Swift package in Xcode.
 
-### Build with Swift Package Manager
-Before building the Swift package in Xcode, make sure to run the `setup.sh` script:
+### For Package Users
+Simply add the package dependency to your `Package.swift` - the pre-built XCFramework is included and requires no additional build steps.
+
+### For Development
+
+#### Prerequisites
+- Xcode with command-line tools installed
+- Python 3 with `meson` and `ninja`:
+  ```bash
+  brew install meson ninja
+  ```
+
+#### Building the XCFramework
+Before building the Swift package, you need to generate the ThorVG XCFramework:
 
 ```bash
-./setup.sh
+# Clone with submodules
+git clone --recursive https://github.com/thorvg/thorvg.swift
+
+# Build the XCFramework
+./build_frameworks.sh
 ```
 
-This script updates the submodule reference and copies the necessary configuration files required for compilation.
+The build script will:
+1. Automatically detect your Xcode installation and SDK paths
+2. Build ThorVG for macOS (arm64 + x86_64), iOS (arm64), and iOS Simulator (arm64)
+3. Create `ThorVG.xcframework` containing all platform binaries
+4. Generate a standalone macOS library in `lib/` for local development
 
-> [!WARNING]
-> ThorVG uses the Meson build system to generate artifacts, including a `config.h` file required for compilation.    
-> Since Swift Package Manager needs all files present at compile time, this file must be generated before building.   
-> The `setup.sh` script handles this by copying a pre-built `config.h` file into the correct location within the `thorvg/src` directory.
+Build outputs:
+- **`ThorVG.xcframework/`** - Multi-platform framework for distribution
+- **`lib/libthorvg.a`** - Standalone macOS library
 
-> [!IMPORTANT]
-> After running the setup, you'll see a `config.h` file in the git status of the ThorVG submodule. This is expected, and you can safely ignore this file when reviewing changes or making commits.
+#### Building the Swift Package
+Once the XCFramework is built, you can build and test the Swift package:
 
-Once the setup script is executed, you can successfully build the ThorVG Swift package in Xcode.
+```bash
+swift build    # Build the package
+swift test     # Run tests
+```
+
+> [!NOTE]
+> The build script uses ThorVG's native Meson build system instead of Swift Package Manager compiling C++ directly.
+> This approach simplifies maintenance and ensures consistent builds across platforms.
+
+> [!TIP]
+> If you're on an Intel Mac and want x86_64 simulator support, you can modify `build_frameworks.sh` to include both architectures for the simulator. By default, only arm64 is built for simulator (Intel Macs can use it via Rosetta 2).
 
 ## Contributing
 Contributions are welcome! If you'd like to help, feel free to open an issue or submit a pull request.

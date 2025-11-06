@@ -1,6 +1,6 @@
 import CoreGraphics
 
-import thorvg
+import ThorVG
 
 /// A Swift wrapper for ThorVG's Picture, facilitating picture manipulation.
 class Picture {

@@ -1,6 +1,6 @@
 import CoreGraphics
 
-import thorvg
+import ThorVG
 
 /// Shorthand alias for the buffer type, representing image pixel data in a mutable pointer to UInt32.
 public typealias Buffer = UnsafeMutablePointer<UInt32>

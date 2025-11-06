@@ -1,7 +1,7 @@
 import CoreGraphics
 import CoreMedia
 
-import thorvg
+import ThorVG
 
 /// Object used to load and render Lottie frames.
 public class Lottie {

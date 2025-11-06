@@ -1,0 +1,20 @@
+[binaries]
+cpp = ['clang++', '-target', 'arm64-apple-ios13.0', '-isysroot', '/Applications/Xcode-26.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk']
+ar = 'ar'
+strip = 'strip'
+
+[properties]
+root = '/Applications/Xcode-26.app/Contents/Developer'
+has_function_printf = true
+
+[built-in options]
+cpp_args = []
+cpp_link_args = []
+
+[host_machine]
+system = 'darwin'
+subsystem = 'ios'
+kernel = 'xnu'
+cpu_family = 'arm64'
+cpu = 'arm64'
+endian = 'little'

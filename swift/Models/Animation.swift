@@ -1,7 +1,7 @@
 import CoreGraphics
 import CoreMedia
 
-import thorvg
+import ThorVG
 
 /// A Swift wrapper for ThorVG animations.
 class Animation {

@@ -251,16 +251,15 @@ swift test     # Run tests
 
 ## Contributing
 
-Contributions are welcome! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed information about:
-- Project structure
+Contributions are welcome! See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
+- Quick start guide
 - How to build from source
-- What to commit to the repository
-- How to update the XCFramework
+- Making changes to Swift code
+- Updating the XCFramework
+- What to commit
 
 ### Additional Documentation
 
-- [Migration Summary](docs/MIGRATION_SUMMARY.md) - Details about the build system migration
-- [Cross-Compilation Notes](docs/CROSS_COMPILATION_NOTES.md) - Technical details about cross-compilation
-- [Upstream Contribution Guide](docs/UPSTREAM_CONTRIBUTION_GUIDE.md) - Guide for contributing to ThorVG upstream
+- [Build System](docs/BUILD_SYSTEM.md) - Comprehensive guide to how ThorVGSwift builds and packages ThorVG, including cross-compilation details, build options, and troubleshooting
 
 Feel free to open an issue or submit a pull request!

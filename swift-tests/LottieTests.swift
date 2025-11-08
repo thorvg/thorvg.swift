@@ -45,6 +45,21 @@ final class LottieTests: XCTestCase {
             XCTAssertEqual(error as? LottieRenderingError, .failedToLoadFromDataString)
         }
     }
+
+    func testFrameDuration_ReturnsCorrectDuration() throws {
+        let lottie = try Lottie(path: testLottieUrl.path)
+
+        // Expected: 3 seconds / 180 frames = 0.0166... seconds per frame
+        let expected = CMTime(seconds: 3.0 / 180.0, preferredTimescale: 600)
+        XCTAssertEqual(lottie.frameDuration, expected)
+    }
+
+    func testFrameSize_ReturnsCorrectSize() throws {
+        let lottie = try Lottie(path: testLottieUrl.path)
+
+        let expected = CGSize(width: 1024, height: 1024)
+        XCTAssertEqual(lottie.frameSize, expected)
+    }
 }
 
 private extension CMTime {

@@ -13,4 +13,10 @@ Packages/
 # hence it is not needed unless you have added a package configuration file to your project
 .swiftpm
 
+# Build artifacts
 .build/
+.build
+
+# macOS system files
+.DS_Store
+**/.DS_Store

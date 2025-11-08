@@ -19,7 +19,8 @@ let package = Package(
         .target(
             name: "ThorVGSwift",
             dependencies: ["thorvg"],
-            path: "swift"
+            path: "swift",
+            resources: [.process("Resources")]
         ),
         .target(
             name: "thorvg",

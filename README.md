@@ -14,6 +14,8 @@ ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://gi
 ## Contents
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Low-Level API (Direct Rendering)](#low-level-api-direct-rendering)
+  - [High-Level Views API (SwiftUI & UIKit)](#high-level-views-api-swiftui--uikit)
 - [Build](#build)
 - [Contributing](#contributing)
 
@@ -30,7 +32,13 @@ dependencies: [
 ## Usage
 This Swift wrapper currently only supports rendering Lottie animations. As the package evolves, additional support for more content types will be added.
 
-The API of `ThorVGSwift` closely follows the structure of the original ThorVG API. It enables rendering of Lottie frames to a buffer. Below is a quick guide to help you get started with the essential APIs.
+ThorVGSwift provides two levels of API:
+1. **Low-Level API**: Direct access to the rendering engine for frame-by-frame control
+2. **High-Level Views API**: Ready-to-use SwiftUI and UIKit views with playback controls
+
+### Low-Level API (Direct Rendering)
+
+The low-level API closely follows the structure of the original ThorVG API, enabling rendering of Lottie frames to a buffer. This is useful when you need fine-grained control over frame rendering.
 
 To start, create a `Lottie` instance using a desired local file path.
 
@@ -97,6 +105,99 @@ And voilà! Your buffer is now filled with the rendered Lottie frame data.
 
 > [!TIP]
 > To render all of the frames in a `Lottie` animation, you can iterate through the `numberOfFrames` property of the `Lottie` class.
+
+### High-Level Views API (SwiftUI & UIKit)
+
+For most use cases, ThorVGSwift provides convenient view components that handle rendering, playback, and animation lifecycle automatically. **All animation state is managed through the `LottieViewModel`**, which you create externally and pass to the view.
+
+#### SwiftUI
+
+```swift
+import SwiftUI
+import ThorVGSwift
+
+struct ContentView: View {
+    @StateObject private var viewModel: LottieViewModel
+    
+    init() {
+        let lottie = try! Lottie(path: "animation.json")
+        let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
+        
+        // Size is optional - defaults to animation's intrinsic size
+        _viewModel = StateObject(wrappedValue: LottieViewModel(
+            lottie: lottie,
+            configuration: config
+        ))
+    }
+    
+    var body: some View {
+        LottieView(viewModel: viewModel)
+            .onAppear { viewModel.play() }
+            .onChange(of: viewModel.error) { _, error in
+                if let error = error {
+                    print("Animation error: \(error)")
+                }
+            }
+    }
+}
+```
+
+#### UIKit
+
+```swift
+import UIKit
+import ThorVGSwift
+
+class ViewController: UIViewController {
+    private var viewModel: LottieViewModel!
+    private var lottieView: LottieUIKitView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let lottie = try! Lottie(path: "animation.json")
+        let config = LottieConfiguration(loopMode: .loop, speed: 1.0)
+        
+        // Size is optional - defaults to animation's intrinsic size
+        viewModel = LottieViewModel(
+            lottie: lottie,
+            configuration: config
+        )
+        lottieView = LottieUIKitView(viewModel: viewModel)
+        
+        // Observe animation errors
+        lottieView.onError = { error in
+            print("Animation error: \(error)")
+        }
+        
+        view.addSubview(lottieView)
+        // Add constraints...
+        
+        viewModel.play()
+    }
+}
+```
+
+#### Features
+
+The high-level Views API provides:
+- ✅ **ViewModel-Based State**: All animation state managed through `LottieViewModel`
+- ✅ **Flexible Sizing**: Optional `size` parameter - defaults to animation's intrinsic dimensions
+- ✅ **Playback Control**: Loop modes (playOnce, loop, repeat, autoReverse) and speed adjustment
+- ✅ **Content Modes**: Aspect fit and aspect fill scaling options
+- ✅ **Progress Tracking**: Monitor playback progress and state via published properties
+- ✅ **Error Handling**: Built-in error reporting through Combine publishers
+- ✅ **Manual Controls**: Play, pause, stop, and seek to specific frames or progress
+- ✅ **Performance Optimized**: Reusable CGContext and efficient buffer management
+- ✅ **SwiftUI Previews**: Interactive previews for rapid development
+
+📖 **[View Complete Views API Documentation →](VIEWS_API_DOCUMENTATION.md)**
+
+The full documentation includes:
+- Detailed API reference for `LottieView`, `LottieUIKitView`, and `LottieViewModel`
+- Configuration options and best practices
+- Complete usage examples and integration patterns
+- Testing strategies and troubleshooting guides
 
 ## Build
 Follow these steps to configure your environment and build the ThorVG Swift package in Xcode.

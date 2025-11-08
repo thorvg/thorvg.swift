@@ -11,6 +11,19 @@ public class Lottie {
     /// The duration of the Lottie animation.
     public let duration: CMTime
 
+    /// The size of the rendered Lottie frames.
+    public var frameSize: CGSize {
+        animation.getPicture().getSize()
+    }
+    
+    /// The duration of a single frame in the animation.
+    public var frameDuration: CMTime {
+        CMTime(
+            seconds: duration.seconds / Double(numberOfFrames),
+            preferredTimescale: 600
+        )
+    }
+
     /// The internal animation object, used for manipulating and rendering frames.
     let animation: Animation
 

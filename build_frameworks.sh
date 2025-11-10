@@ -127,8 +127,14 @@ build_for_platform() {
     
     if [[ "$PLATFORM" == "macosx" ]]; then
         # Native macOS build
+        # Disable SIMD for x86_64 to avoid NEON instruction issues on ARM host
+        local MESON_OPTIONS=("${MESON_OPTIONS_MACOS[@]}")
+        if [ "$ARCH" = "x86_64" ]; then
+            MESON_OPTIONS=("${MESON_OPTIONS_BASE[@]}" -Dthreads=true -Dsimd=false)
+        fi
+        
         meson setup "$BUILD_PATH" "$THORVG_DIR" \
-            "${MESON_OPTIONS_MACOS[@]}" \
+            "${MESON_OPTIONS[@]}" \
             -Dcpp_args="-arch $ARCH" \
             -Dcpp_link_args="-arch $ARCH"
     else

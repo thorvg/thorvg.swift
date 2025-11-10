@@ -2,6 +2,14 @@ import XCTest
 
 import SnapshotTesting
 
+#if canImport(UIKit)
+import UIKit
+typealias PlatformImage = UIImage
+#elseif canImport(AppKit)
+import AppKit
+typealias PlatformImage = NSImage
+#endif
+
 @testable import ThorVGSwift
 
 class LottieSnapshotTests: XCTestCase {
@@ -25,12 +33,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenDesiredSizeIsLargerThanLottieOriginalSize_ReturnsScaledImageSnapshot() throws {
@@ -41,12 +49,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenDesiredSizeIsSmallerThanLottieOriginalSize_ReturnsScaledImageSnapshot() throws {
@@ -57,12 +65,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenCropped_ReturnsCroppedAndScaledImageSnapshot() throws {
@@ -73,12 +81,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: crop)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenCroppedWithNonUniformRectangle_ReturnsCroppedAndScaledImageSnapshot() throws {
@@ -89,12 +97,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: crop)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenCenterCropped_ReturnsCroppedAndScaledImageSnapshot() throws {
@@ -105,12 +113,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: crop)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenCenterCroppedAndRotated_ReturnsCroppedScaledAndRotatedImageSnapshot() throws {
@@ -121,12 +129,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: crop, rotation: 90)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenRotated_ReturnsRotatedImageSnapshot() throws {
@@ -137,12 +145,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: contentRect, rotation: rotation)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenCroppedAndRotated_ReturnsCroppedAndRotatedImageSnapshot() throws {
@@ -154,12 +162,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: crop, rotation: rotation)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenScaledCroppedAndRotated_ReturnsScaleCroppedAndRotatedImageSnapshot() throws {
@@ -172,12 +180,12 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: crop, rotation: rotation)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 
     func testRenderFrame_WhenUsingABGRPixelFormat_ReturnsImageWithCorrectPixelValues() throws {
@@ -187,15 +195,16 @@ class LottieSnapshotTests: XCTestCase {
 
         try renderer.render(frameIndex: 0, contentRect: contentRect)
 
-        guard let image = UIImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
-            XCTFail("Unable to create UIImage from buffer")
+        guard let image = PlatformImage(buffer: &buffer, size: size, pixelFormat: pixelFormat) else {
+            XCTFail("Unable to create image from buffer")
             return
         }
 
-        assertSnapshot(matching: image, as: .image)
+        assertSnapshot(of: image, as: .image)
     }
 }
 
+#if canImport(UIKit)
 extension UIImage {
     convenience init?(buffer: Buffer, size: CGSize, pixelFormat: PixelFormat) {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -222,6 +231,34 @@ extension UIImage {
         self.init(cgImage: cgImage, scale: 1.0, orientation: .up)
     }
 }
+#elseif canImport(AppKit)
+extension NSImage {
+    convenience init?(buffer: Buffer, size: CGSize, pixelFormat: PixelFormat) {
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = pixelFormat.bitmapInfo.rawValue
+        let bitsPerComponent = 8
+        let bytesPerRow = Int(size.width) * 4
+
+        guard let context = CGContext(
+            data: buffer,
+            width: Int(size.width),
+            height: Int(size.height),
+            bitsPerComponent: bitsPerComponent,
+            bytesPerRow: bytesPerRow,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo
+        ) else {
+            return nil
+        }
+
+        guard let cgImage = context.makeImage() else {
+            return nil
+        }
+
+        self.init(cgImage: cgImage, size: size)
+    }
+}
+#endif
 
 extension PixelFormat {
     var bitmapInfo: CGBitmapInfo {

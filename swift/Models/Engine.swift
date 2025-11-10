@@ -1,6 +1,6 @@
 import CoreGraphics
 
-import thorvg
+import ThorVG
 
 /// A Swift wrapper for managing ThorVG's engine initialization and termination.
 public class Engine {

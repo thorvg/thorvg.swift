@@ -1,4 +1,4 @@
-import thorvg
+import ThorVG
 
 /// Specifies the methods of combining the 8-bit color components into 32-bit color.
 public enum PixelFormat {

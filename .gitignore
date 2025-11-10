@@ -1,5 +1,6 @@
 ## User settings
 xcuserdata/
+.DS_Store
 
 # Swift Package Manager
 #
@@ -13,10 +14,11 @@ Packages/
 # hence it is not needed unless you have added a package configuration file to your project
 .swiftpm
 
-# Build artifacts
-.build/
-.build
-
 # macOS system files
 .DS_Store
 **/.DS_Store
+.build/
+
+# Build artifacts (from build_frameworks.sh)
+build/
+lib/

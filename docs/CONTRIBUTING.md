@@ -17,9 +17,8 @@ thorvg.swift/
 │
 └── docs/                            # Additional documentation
     ├── CONTRIBUTING.md              # This file
-    ├── MIGRATION_SUMMARY.md         # Details about the build system migration
-    ├── CROSS_COMPILATION_NOTES.md   # Cross-compilation technical notes
-    └── UPSTREAM_CONTRIBUTION_GUIDE.md # Guide for contributing to upstream ThorVG
+    └── BUILD_SYSTEM.md              # Build system details
+
 ```
 
 ## Quick Start
@@ -44,12 +43,10 @@ cd thorvg.swift
 
 # Build and test the Swift package
 swift build
-
-# Run tests in Xcode (recommended for iOS testing)
-# 1. Open Package.swift in Xcode
-# 2. Select an iOS Simulator
-# 3. Run tests (Cmd+U)
+swift test  # macOS tests only
 ```
+
+For iOS testing, open `Package.swift` in Xcode, select an iOS Simulator, and run tests (Cmd+U).
 
 ## Making Changes
 
@@ -71,7 +68,7 @@ If you need to rebuild the binary (e.g., updating ThorVG version, changing build
    git add thorvg
    ```
 
-2. Modify build options in `build_frameworks.sh` if needed (look for `MESON_OPTIONS_BASE`)
+2. Modify build options in `build_frameworks.sh` if needed
 
 3. Rebuild:
    ```bash

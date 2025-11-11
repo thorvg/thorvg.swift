@@ -73,7 +73,9 @@ MESON_OPTIONS_BASE=(
 )
 
 # Platform-specific options
-MESON_OPTIONS_MACOS=("${MESON_OPTIONS_BASE[@]}" -Dthreads=true -Dsimd=true)
+# Note: Threads disabled for macOS to avoid OpenMP linking issues with Swift Package Manager
+MESON_OPTIONS_MACOS=("${MESON_OPTIONS_BASE[@]}" -Dthreads=false -Dsimd=true)
+MESON_OPTIONS_MACOS_X86=("${MESON_OPTIONS_BASE[@]}" -Dthreads=false -Dsimd=false)
 MESON_OPTIONS_IOS=("${MESON_OPTIONS_BASE[@]}" -Dthreads=false -Dsimd=false)
 
 # Function to create a temporary cross-compilation file
@@ -127,16 +129,18 @@ build_for_platform() {
     
     if [[ "$PLATFORM" == "macosx" ]]; then
         # Native macOS build
-        # Disable SIMD for x86_64 to avoid NEON instruction issues on ARM host
-        local MESON_OPTIONS=("${MESON_OPTIONS_MACOS[@]}")
-        if [ "$ARCH" = "x86_64" ]; then
-            MESON_OPTIONS=("${MESON_OPTIONS_BASE[@]}" -Dthreads=true -Dsimd=false)
+        # Disable SIMD for x86_64 to avoid cross-compilation issues
+        if [[ "$ARCH" == "x86_64" ]]; then
+            meson setup "$BUILD_PATH" "$THORVG_DIR" \
+                "${MESON_OPTIONS_MACOS_X86[@]}" \
+                -Dcpp_args="-arch $ARCH" \
+                -Dcpp_link_args="-arch $ARCH"
+        else
+            meson setup "$BUILD_PATH" "$THORVG_DIR" \
+                "${MESON_OPTIONS_MACOS[@]}" \
+                -Dcpp_args="-arch $ARCH" \
+                -Dcpp_link_args="-arch $ARCH"
         fi
-        
-        meson setup "$BUILD_PATH" "$THORVG_DIR" \
-            "${MESON_OPTIONS[@]}" \
-            -Dcpp_args="-arch $ARCH" \
-            -Dcpp_link_args="-arch $ARCH"
     else
         # iOS cross-compilation
         local CROSS_FILE="$BUILD_DIR/cross-${PLATFORM}-${ARCH}.txt"
@@ -220,7 +224,7 @@ EOF
     <key>CFBundlePackageType</key>
     <string>FMWK</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.14.7</string>
+    <string>0.15.16</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleSupportedPlatforms</key>

@@ -18,17 +18,20 @@ thorvg.swift/
 └── docs/                            # Additional documentation
     ├── CONTRIBUTING.md              # This file
     └── BUILD_SYSTEM.md              # Build system details
+
 ```
 
 ## Quick Start
 
-### Prerequisites
+To build the XCFramework from source, you'll need:
 
 - macOS with Xcode installed
 - [Meson](https://mesonbuild.com/) build system: `brew install meson`
 - Command line tools: `xcode-select --install`
 
-### Building
+## Building the XCFramework
+
+The project uses ThorVG's native Meson build system to create a static library, then packages it as an XCFramework for iOS and macOS:
 
 ```bash
 # Clone with submodules
@@ -49,25 +52,29 @@ For iOS testing, open `Package.swift` in Xcode, select an iOS Simulator, and run
 
 ### Updating Swift Code
 
-1. Make your changes in `swift/` or `swift-tests/`
-2. Run tests: `swift test` (macOS) and in Xcode (iOS)
+1. Make your changes in `swift/`
+2. Run tests to ensure everything works
 3. Submit a pull request
 
 ### Updating the XCFramework
 
 If you need to rebuild the binary (e.g., updating ThorVG version, changing build options):
 
-```bash
-# Update ThorVG submodule (if needed)
-cd thorvg
-git fetch --tags
-git checkout v0.15.16  # or desired version
-cd ..
-git add thorvg
+1. Update the `thorvg` submodule if needed:
+   ```bash
+   cd thorvg
+   git checkout <new-version-tag>
+   cd ..
+   git add thorvg
+   ```
 
-# Rebuild
-rm -rf ThorVG.xcframework build lib
-./build_frameworks.sh
+2. Modify build options in `build_frameworks.sh` if needed
+
+3. Rebuild:
+   ```bash
+   rm -rf ThorVG.xcframework build
+   ./build_frameworks.sh
+   ```
 
 # Test thoroughly
 swift build
@@ -166,4 +173,5 @@ To record new snapshots:
 
 By contributing, you agree that your contributions will be licensed under the MIT License. See the LICENSE file for details.
 
-The ThorVG library is also licensed under the MIT License. See `thorvg/LICENSE` for details.
+The ThorVG library is licensed under the MIT License. See `thorvg/LICENSE` for details.
+

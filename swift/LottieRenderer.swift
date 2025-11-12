@@ -5,6 +5,9 @@ import ThorVG
 /// Shorthand alias for the buffer type, representing image pixel data in a mutable pointer to UInt32.
 public typealias Buffer = UnsafeMutablePointer<UInt32>
 
+/// Conversion factor from degrees to radians: π / 180
+private let degreesToRadians = Double.pi / 180.0
+
 /// Object responsible for rendering a Lottie animation using ThorVG.
 public class LottieRenderer {
     private let lottie: Lottie
@@ -72,7 +75,7 @@ public class LottieRenderer {
             )
             .concatenating(
                 CGAffineTransform(
-                    rotationAngle: rotation * .pi / 180.0
+                    rotationAngle: rotation * degreesToRadians
                 )
                 .appliedAround(pivot:
                     CGPoint(

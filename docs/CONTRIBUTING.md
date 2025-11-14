@@ -8,11 +8,12 @@ Thank you for your interest in contributing! This guide will help you get starte
 thorvg.swift/
 ├── README.md                        # Main documentation
 ├── Package.swift                    # Swift Package manifest
-├── build_frameworks.sh              # Build script for XCFramework
+├── build_frameworks.sh              # Build script for local development
+├── release.sh                       # Release preparation script
 │
 ├── swift/                           # Swift wrapper source code
 ├── swift-tests/                     # Test suite
-├── ThorVG.xcframework/              # Pre-built binary (committed to repo)
+├── ThorVG.xcframework/              # Pre-built binary (only in releases, not in repo)
 ├── thorvg/                          # ThorVG C++ submodule
 │
 └── docs/                            # Additional documentation
@@ -23,13 +24,13 @@ thorvg.swift/
 
 ## Quick Start
 
-To build the XCFramework from source, you'll need:
+To contribute to this project, you'll need:
 
 - macOS with Xcode installed
-- [Meson](https://mesonbuild.com/) build system: `brew install meson`
+- [Meson](https://mesonbuild.com/) build system: `brew install meson ninja`
 - Command line tools: `xcode-select --install`
 
-## Building the XCFramework
+## Building for Local Development
 
 The project uses ThorVG's native Meson build system to create a static library, then packages it as an XCFramework for iOS and macOS:
 
@@ -38,7 +39,7 @@ The project uses ThorVG's native Meson build system to create a static library, 
 git clone --recursive https://github.com/thorvg/thorvg.swift
 cd thorvg.swift
 
-# Build the XCFramework
+# Build the XCFramework locally
 ./build_frameworks.sh
 
 # Build and test the Swift package
@@ -48,6 +49,8 @@ swift test  # macOS tests only
 
 For iOS testing, open `Package.swift` in Xcode, select an iOS Simulator, and run tests (Cmd+U).
 
+> **Note:** The `ThorVG.xcframework` is NOT committed to the repository for regular development. It's only included in tagged releases. You must build it locally using `./build_frameworks.sh` before working on the project.
+
 ## Making Changes
 
 ### Updating Swift Code
@@ -56,37 +59,32 @@ For iOS testing, open `Package.swift` in Xcode, select an iOS Simulator, and run
 2. Run tests to ensure everything works
 3. Submit a pull request
 
-### Updating the XCFramework
+### Updating the ThorVG Version
 
-If you need to rebuild the binary (e.g., updating ThorVG version, changing build options):
+If you need to update to a new version of ThorVG:
 
-1. Update the `thorvg` submodule if needed:
+1. Update the `thorvg` submodule:
    ```bash
    cd thorvg
+   git fetch --tags
    git checkout <new-version-tag>
    cd ..
    git add thorvg
+   git commit -m "Update ThorVG submodule to v0.15.16"
    ```
 
-2. Modify build options in `build_frameworks.sh` if needed
-
-3. Rebuild:
+2. Rebuild locally to test:
    ```bash
-   rm -rf ThorVG.xcframework build
+   rm -rf ThorVG.xcframework build lib
    ./build_frameworks.sh
+   swift build
+   swift test
+   # Also test in Xcode with iOS Simulator
    ```
 
-# Test thoroughly
-swift build
-swift test
-# Also test in Xcode with iOS Simulator
+3. Submit a PR with just the submodule update (don't commit the XCFramework)
 
-# Commit the new XCFramework
-git add ThorVG.xcframework
-git commit -m "Update ThorVG to v0.15.16"
-```
-
-**Important**: Always commit the updated `ThorVG.xcframework/` - it's essential for SPM users!
+**Note**: The XCFramework will be built and included when creating a release (see [Creating a Release](#creating-a-release))
 
 ## Understanding the Build System
 
@@ -101,18 +99,26 @@ See **[BUILD_SYSTEM.md](BUILD_SYSTEM.md)** for complete details.
 
 ## What to Commit
 
-### ✅ DO Commit
-- `ThorVG.xcframework/` - Pre-built binary (essential for SPM users!)
+### ✅ DO Commit (Regular Development)
 - All Swift source code (`swift/`)
 - Tests and resources (`swift-tests/`)
-- Build scripts (`build_frameworks.sh`)
+- Build scripts (`build_frameworks.sh`, `release.sh`)
 - Documentation (`README.md`, `docs/`)
+- `thorvg/` submodule updates
+- `Package.swift` changes
 
-### ❌ DON'T Commit
+### ❌ DON'T Commit (Regular Development)
+- `ThorVG.xcframework/` - Only included in release commits (in `.gitignore`)
 - `build/` - Build artifacts (in `.gitignore`)
 - `lib/` - Standalone macOS library (in `.gitignore`)
 - `.build/` - SPM build folder (in `.gitignore`)
 - `.DS_Store` - macOS metadata (in `.gitignore`)
+
+### Release Commits (Special Case)
+The `ThorVG.xcframework` is **only** committed in release commits created by `./release.sh`. This ensures:
+- The repository stays lightweight for contributors
+- End users get pre-built binaries when using tagged releases
+- Local development requires building from source
 
 ## Testing
 
@@ -160,7 +166,56 @@ To record new snapshots:
 - [ ] Tests pass on iOS (in Xcode)
 - [ ] No linter warnings
 - [ ] Updated documentation if needed
-- [ ] XCFramework committed if ThorVG was updated
+- [ ] XCFramework NOT committed (it will be built during release)
+
+## Creating a Release
+
+> **Note:** This section is for maintainers with push access to the repository.
+
+To create a new release with pre-built binaries:
+
+```bash
+# Ensure you're on the main branch with latest changes
+git checkout main
+git pull
+
+# Run the release script (e.g., for version 0.1.0)
+./release.sh 0.1.0
+```
+
+The release script will:
+1. ✅ Build the XCFramework for all platforms
+2. ✅ Create a release commit (with the XCFramework)
+3. ✅ Create an annotated git tag (e.g., `v0.1.0`)
+4. ℹ️ Provide instructions for pushing and creating the GitHub release
+
+After the script completes:
+
+```bash
+# Push the tag to GitHub
+git push origin v0.1.0
+
+# Create a GitHub release from the tag
+# Visit: https://github.com/thorvg/thorvg.swift/releases/new?tag=v0.1.0
+```
+
+When creating the GitHub release:
+- Add release notes describing changes and features
+- The XCFramework is already in the tagged commit
+- Users can now use this version in their `Package.swift`
+
+### After the Release
+
+Once the tag is pushed, reset your local branch to remove the XCFramework:
+
+```bash
+# Move back to before the release commit
+git reset --hard HEAD~1
+
+# Now you're back to normal development (XCFramework not in working tree)
+```
+
+The XCFramework only exists in the tagged commit, not in the main branch history.
 
 ## Getting Help
 

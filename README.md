@@ -202,25 +202,34 @@ The full documentation includes:
 ## Build
 
 ### For Package Users
-Simply add the package dependency to your `Package.swift` - the pre-built XCFramework is included and requires no additional build steps.
+Simply add the package dependency to your `Package.swift` - releases include pre-built XCFramework binaries and require no additional build steps.
 
-### For Development
+```swift
+dependencies: [
+  .package(url: "https://github.com/thorvg/thorvg.swift", from: "0.1.0")
+]
+```
+
+### For Local Development & Contributors
+
+Contributors need to build the XCFramework locally, as it's not included in the repository (only in release tags).
 
 #### Prerequisites
 - Xcode with command-line tools installed
-- Python 3 with `meson` and `ninja`:
+- Meson and Ninja build tools:
   ```bash
   brew install meson ninja
   ```
 
 #### Building the XCFramework
-Before building the Swift package, you need to generate the ThorVG XCFramework:
+Before building the Swift package, generate the ThorVG XCFramework:
 
 ```bash
 # Clone with submodules
 git clone --recursive https://github.com/thorvg/thorvg.swift
+cd thorvg.swift
 
-# Build the XCFramework
+# Build the XCFramework (required for local development)
 ./build_frameworks.sh
 ```
 
@@ -231,8 +240,8 @@ The build script will:
 4. Generate a standalone macOS library in `lib/` for local development
 
 Build outputs:
-- **`ThorVG.xcframework/`** - Multi-platform framework for distribution
-- **`lib/libthorvg.a`** - Standalone macOS library
+- **`ThorVG.xcframework/`** - Multi-platform framework (gitignored, only in releases)
+- **`lib/libthorvg.a`** - Standalone macOS library (gitignored)
 
 #### Building the Swift Package
 Once the XCFramework is built, you can build and test the Swift package:
@@ -241,6 +250,17 @@ Once the XCFramework is built, you can build and test the Swift package:
 swift build    # Build the package
 swift test     # Run tests
 ```
+
+#### Creating a Release
+
+Maintainers can create releases with pre-built binaries:
+
+```bash
+# This builds the XCFramework and creates a release commit + tag
+./release.sh 0.1.0
+```
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md#creating-a-release) for complete release instructions.
 
 > [!NOTE]
 > The build script uses ThorVG's native Meson build system instead of Swift Package Manager compiling C++ directly.

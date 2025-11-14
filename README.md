@@ -191,7 +191,7 @@ The high-level Views API provides:
 - ✅ **Performance Optimized**: Reusable CGContext and efficient buffer management
 - ✅ **SwiftUI Previews**: Interactive previews for rapid development
 
-📖 **[View Complete Views API Documentation →](VIEWS_API_DOCUMENTATION.md)**
+📖 **[View Complete Views API Documentation →](docs/VIEWS_API_DOCUMENTATION.md)**
 
 The full documentation includes:
 - Detailed API reference for `LottieView`, `LottieUIKitView`, and `LottieViewModel`

@@ -189,7 +189,9 @@ The high-level Views API provides:
 - ✅ **Error Handling**: Built-in error reporting through Combine publishers
 - ✅ **Manual Controls**: Play, pause, stop, and seek to specific frames or progress
 - ✅ **Performance Optimized**: Reusable CGContext and efficient buffer management
-- ✅ **SwiftUI Previews**: Interactive previews for rapid development
+- ✅ **Sample App**: Interactive iOS app demonstrating all features
+
+> **Note:** Try the **[ThorVGSampleApp](ThorVGSampleApp/)** - a standalone iOS app with all examples! Just open `ThorVGSampleApp/ThorVGSampleApp.xcodeproj` and run. [Learn more →](ThorVGSampleApp/README.md)
 
 📖 **[View Complete Views API Documentation →](docs/VIEWS_API_DOCUMENTATION.md)**
 

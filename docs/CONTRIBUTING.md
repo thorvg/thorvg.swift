@@ -2,6 +2,17 @@
 
 Thank you for your interest in contributing! This guide will help you get started with the project.
 
+## Quick Start for Testing
+
+The **ThorVGSampleApp** is perfect for testing your changes:
+
+1. Make changes to Swift code in `swift/`
+2. Open `ThorVGSampleApp/ThorVGSampleApp.xcodeproj` in Xcode
+3. Build and run (⌘R)
+4. See your changes in action immediately!
+
+The sample app includes all ThorVGSwift features with visual examples.
+
 ## Project Structure
 
 ```

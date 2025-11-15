@@ -31,7 +31,7 @@ public class LottieViewModel: ObservableObject {
         /// Failed to render a frame.
         case renderingFailed(String)
         
-        /// Failed to create UIImage from buffer.
+        /// Failed to create CGImage from buffer.
         case imageCreationFailed
         
         /// Invalid frame index.
@@ -43,8 +43,8 @@ public class LottieViewModel: ObservableObject {
     
     // MARK: - Published Properties
     
-    /// The currently rendered frame as a UIImage.
-    @Published public private(set) var renderedFrame: UIImage?
+    /// The currently rendered frame as a CGImage.
+    @Published public private(set) var renderedFrame: CGImage?
     
     /// The current playback state.
     @Published public private(set) var playbackState: PlaybackState = .stopped
@@ -220,7 +220,7 @@ public class LottieViewModel: ObservableObject {
             return
         }
         
-        renderedFrame = UIImage(cgImage: cgImage, scale: 1.0, orientation: .up)
+        renderedFrame = cgImage
         progress = elapsedTime.seconds / lottie.duration.seconds
     }
     

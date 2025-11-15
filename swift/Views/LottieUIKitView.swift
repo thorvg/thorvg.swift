@@ -1,3 +1,4 @@
+#if canImport(UIKit)
 import UIKit
 import Combine
 
@@ -134,8 +135,8 @@ public class LottieUIKitView: UIView {
         // Bind rendered frame to image view
         viewModel.$renderedFrame
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] image in
-                self?.imageView.image = image
+            .sink { [weak self] cgImage in
+                self?.imageView.image = self?.createUIImage(from: cgImage)
             }
             .store(in: &cancellables)
         
@@ -165,266 +166,18 @@ public class LottieUIKitView: UIView {
             }
             .store(in: &cancellables)
     }
-}
-
-// MARK: - SwiftUI Preview Support
-
-#if DEBUG
-import SwiftUI
-
-#Preview("UIKit - Loop") {
-    LottieUIKitPreview(loopMode: .loop)
-}
-
-#Preview("UIKit - Once") {
-    LottieUIKitPreview(loopMode: .playOnce)
-}
-
-#Preview("UIKit - 2x Speed") {
-    LottieUIKitPreview(speed: 2.0)
-}
-
-#Preview("UIKit - 0.5x Speed") {
-    LottieUIKitPreview(speed: 0.5)
-}
-
-#Preview("UIKit - 60fps") {
-    LottieUIKitPreview(frameRate: 60.0)
-}
-
-#Preview("UIKit - Manual Controls") {
-    if #available(iOS 14.0, *) {
-        LottieUIKitPreviewWithControls()
-    }
-}
-
-#Preview("UIKit - Slider Seeking") {
-    if #available(iOS 14.0, *) {
-        LottieUIKitPreviewWithSlider()
-    }
-}
-
-#Preview("UIKit - Content Modes") {
-    if #available(iOS 14.0, *) {
-        LottieUIKitPreviewContentModes()
-    }
-}
-
-// MARK: - Preview Helpers
-
-private struct LottieUIKitPreview: UIViewRepresentable {
-    let viewModel: LottieViewModel
     
-    init(
-        loopMode: LottieConfiguration.LoopMode = .loop,
-        speed: Double = 1.0,
-        frameRate: Double = 30.0
-    ) {
-        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
-              let lottie = try? Lottie(path: path) else {
-            fatalError("Failed to load test Lottie")
-        }
+    // MARK: - Helper Methods
+    
+    /// Creates a UIImage from a CGImage with proper scale and orientation.
+    private func createUIImage(from cgImage: CGImage?) -> UIImage? {
+        guard let cgImage = cgImage else { return nil }
         
-        let config = LottieConfiguration(loopMode: loopMode, speed: speed, frameRate: frameRate)
-        viewModel = LottieViewModel(
-            lottie: lottie,
-            configuration: config
+        return UIImage(
+            cgImage: cgImage,
+            scale: UIScreen.main.scale,
+            orientation: .up
         )
-    }
-    
-    func makeUIView(context: Context) -> LottieUIKitView {
-        let view = LottieUIKitView(viewModel: viewModel)
-        viewModel.play()
-        return view
-    }
-    
-    func updateUIView(_ uiView: LottieUIKitView, context: Context) {}
-}
-
-@available(iOS 14.0, *)
-private struct LottieUIKitPreviewWithControls: View {
-    @StateObject private var viewModel: LottieViewModel
-    
-    init() {
-        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
-              let lottie = try? Lottie(path: path) else {
-            fatalError("Failed to load test Lottie")
-        }
-        
-        _viewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            configuration: .default
-        ))
-    }
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            UIKitViewWrapper(viewModel: viewModel)
-            
-            HStack(spacing: 12) {
-                Button("Play") { viewModel.play() }
-                Button("Pause") { viewModel.pause() }
-                Button("Stop") { viewModel.stop() }
-            }
-            .buttonStyle(.automatic)
-
-            Text("Progress: \(Int(viewModel.progress * 100))%")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding()
-    }
-}
-
-private struct UIKitViewWrapper: UIViewRepresentable {
-    let viewModel: LottieViewModel
-    
-    func makeUIView(context: Context) -> LottieUIKitView {
-        LottieUIKitView(viewModel: viewModel)
-    }
-    
-    func updateUIView(_ uiView: LottieUIKitView, context: Context) {}
-}
-
-@available(iOS 14.0, *)
-private struct LottieUIKitPreviewWithSlider: View {
-    @StateObject private var viewModel: LottieViewModel
-    @State private var sliderValue: Double = 0.0
-    @State private var isDragging: Bool = false
-    
-    init() {
-        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
-              let lottie = try? Lottie(path: path) else {
-            fatalError("Failed to load test Lottie")
-        }
-        
-        _viewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            configuration: .default
-        ))
-    }
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            UIKitViewWrapper(viewModel: viewModel)
-                .frame(width: 300, height: 300)
-            
-            VStack(spacing: 8) {
-                Slider(
-                    value: $sliderValue,
-                    in: 0...1,
-                    onEditingChanged: { editing in
-                        if editing {
-                            // Pause on touch down
-                            isDragging = true
-                            viewModel.pause()
-                        } else {
-                            // Resume on touch up
-                            isDragging = false
-                        }
-                    }
-                )
-                .onChange(of: sliderValue) { newValue in
-                    if isDragging {
-                        viewModel.seek(to: newValue)
-                    }
-                }
-                
-                HStack {
-                    Button(viewModel.playbackState == .playing ? "Pause" : "Play") {
-                        if viewModel.playbackState == .playing {
-                            viewModel.pause()
-                        } else {
-                            viewModel.play()
-                        }
-                    }
-                    .buttonStyle(.automatic)
-                    
-                    Spacer()
-                    
-                    Text("\(Int(viewModel.progress * 100))%")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(.horizontal)
-        }
-        .padding()
-        .onChange(of: viewModel.progress) { newProgress in
-            if !isDragging {
-                sliderValue = newProgress
-            }
-        }
-    }
-}
-
-@available(iOS 14.0, *)
-private struct LottieUIKitPreviewContentModes: View {
-    @StateObject private var fillViewModel: LottieViewModel
-    @StateObject private var fitViewModel: LottieViewModel
-    
-    init() {
-        guard let path = Bundle.module.path(forResource: "test", ofType: "json"),
-              let lottie = try? Lottie(path: path) else {
-            fatalError("Failed to load test Lottie")
-        }
-        
-        // Different frame sizes to demonstrate each mode's behavior
-        
-        // scaleAspectFill: Wide frame - will crop top/bottom if Lottie is square
-        let fillConfig = LottieConfiguration(
-            loopMode: .loop,
-            contentMode: .scaleAspectFill
-        )
-        _fillViewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            size: CGSize(width: 300, height: 150),  // Wide aspect ratio
-            configuration: fillConfig
-        ))
-        
-        // scaleAspectFit: Square frame - renders full animation
-        let fitConfig = LottieConfiguration(
-            loopMode: .loop,
-            contentMode: .scaleAspectFit
-        )
-        _fitViewModel = StateObject(wrappedValue: LottieViewModel(
-            lottie: lottie,
-            size: CGSize(width: 250, height: 250),  // Square
-            configuration: fitConfig
-        ))
-    }
-    
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 32) {
-                VStack(spacing: 8) {
-                    Text("Scale Aspect Fill")
-                        .font(.headline)
-                    Text("Wide frame - crops top/bottom")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    UIKitViewWrapper(viewModel: fillViewModel)
-                        .frame(width: 300, height: 150)
-                        .background(Color.blue.opacity(0.1))
-                        .border(Color.blue, width: 2)
-                        .onAppear { fillViewModel.play() }
-                }
-                
-                VStack(spacing: 8) {
-                    Text("Scale Aspect Fit")
-                        .font(.headline)
-                    Text("Square frame - shows full animation")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    UIKitViewWrapper(viewModel: fitViewModel)
-                        .frame(width: 250, height: 250)
-                        .background(Color.green.opacity(0.1))
-                        .border(Color.green, width: 2)
-                        .onAppear { fitViewModel.play() }
-                }
-            }
-            .padding()
-        }
     }
 }
 #endif

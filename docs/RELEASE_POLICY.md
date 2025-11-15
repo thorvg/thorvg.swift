@@ -378,10 +378,11 @@ Use this checklist for every release:
 
 This section will be maintained as releases are published:
 
-- **v0.1.0** (TBD): Initial public release
+- **v0.1.0** (2025-11-15): Initial public release
   - Lottie animation rendering
   - SwiftUI and UIKit views
   - iOS 13.0+, macOS 10.15+ support
+  - Pre-built XCFramework distribution
 
 ## Emergency Procedures
 

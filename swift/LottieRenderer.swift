@@ -84,8 +84,7 @@ public class LottieRenderer {
         
         picture.setTransform(transform)
 
-        canvas.clear()
-        canvas.update(picture: picture)
+        canvas.update()
         try canvas.draw()
     }
 }

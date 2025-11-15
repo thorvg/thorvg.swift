@@ -35,7 +35,14 @@ class Picture {
     /// Use the `mimeType` to indicate the data format for correct parsing.
     func load(fromString string: String, mimeType: MimeType) throws {
         guard let cString = string.cString(using: .utf8),
-              tvg_picture_load_data(pointer, cString, UInt32(cString.count), mimeType.rawValue, false) == TVG_RESULT_SUCCESS
+              tvg_picture_load_data(
+                pointer,
+                cString,
+                UInt32(cString.count),
+                mimeType.rawValue,
+                nil,
+                false
+              ) == TVG_RESULT_SUCCESS
         else {
             throw LottieRenderingError.failedToLoadFromDataString
         }

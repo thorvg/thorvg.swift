@@ -59,7 +59,7 @@ echo -e "${GREEN}Using Xcode at: $XCODE_DEVELOPER_DIR${NC}"
 # Meson options for thorvg
 MESON_OPTIONS_BASE=(
     -Ddefault_library=static
-    -Dloaders=svg,tvg,lottie,ttf
+    -Dloaders=svg,lottie,ttf
     -Dsavers=
     -Dengines=sw
     -Dbindings=capi

@@ -16,9 +16,9 @@ This approach provides several benefits:
 - ✅ **Maintenance**: ThorVG's build system handles platform-specific complexity
 - ✅ **Reliability**: Consistent builds across all developer environments
 
-## Build Script: `build_frameworks.sh`
+## Build Script: `scripts/build_frameworks.sh`
 
-The entire build process is automated by `build_frameworks.sh`, which:
+The entire build process is automated by `scripts/build_frameworks.sh`, which:
 
 ### 1. Dynamic Environment Detection
 
@@ -193,7 +193,7 @@ The build script uses carefully tuned Meson options for each platform:
 
 ## Build Outputs
 
-After running `build_frameworks.sh`, you'll have:
+After running `scripts/build_frameworks.sh`, you'll have:
 
 ```
 ThorVG.xcframework/          # ← Commit this to Git
@@ -255,7 +255,7 @@ cd ..
 
 # 2. Rebuild the XCFramework
 rm -rf ThorVG.xcframework build lib
-./build_frameworks.sh
+./scripts/build_frameworks.sh
 
 # 3. Test
 swift build
@@ -285,7 +285,7 @@ xcode-select -p  # Should show your Xcode path
 This means the simulator binary wasn't properly tagged with the `-simulator` target triple. Rebuild:
 ```bash
 rm -rf ThorVG.xcframework build
-./build_frameworks.sh
+./scripts/build_frameworks.sh
 ```
 
 ### XCFramework seems large
@@ -304,7 +304,7 @@ Total in repository: ~5-8 MB (compressed by Git)
 | iOS | arm64 | 13.0+ | System | Built-in |
 | iOS Simulator | arm64 | 13.0+ | System | Built-in |
 
-**Note**: Intel Mac users can run the arm64 simulator build via Rosetta 2. If you need native x86_64 simulator support, modify `build_frameworks.sh` to add an x86_64 simulator build and create a fat binary with `lipo`.
+**Note**: Intel Mac users can run the arm64 simulator build via Rosetta 2. If you need native x86_64 simulator support, modify `scripts/build_frameworks.sh` to add an x86_64 simulator build and create a fat binary with `lipo`.
 
 ## Additional Resources
 

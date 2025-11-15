@@ -19,8 +19,9 @@ The sample app includes all ThorVGSwift features with visual examples.
 thorvg.swift/
 ├── README.md                        # Main documentation
 ├── Package.swift                    # Swift Package manifest
-├── build_frameworks.sh              # Build script for local development
-├── release.sh                       # Release preparation script
+├── scripts/                         # Build and release scripts
+│   ├── build_frameworks.sh          # Build script for local development
+│   └── release.sh                   # Release preparation script
 │
 ├── swift/                           # Swift wrapper source code
 ├── swift-tests/                     # Test suite
@@ -51,7 +52,7 @@ git clone --recursive https://github.com/thorvg/thorvg.swift
 cd thorvg.swift
 
 # Build the XCFramework locally
-./build_frameworks.sh
+./scripts/build_frameworks.sh
 
 # Build and test the Swift package
 swift build
@@ -60,7 +61,7 @@ swift test  # macOS tests only
 
 For iOS testing, open `Package.swift` in Xcode, select an iOS Simulator, and run tests (Cmd+U).
 
-> **Note:** The `ThorVG.xcframework` is NOT committed to the repository for regular development. It's only included in tagged releases. You must build it locally using `./build_frameworks.sh` before working on the project.
+> **Note:** The `ThorVG.xcframework` is NOT committed to the repository for regular development. It's only included in tagged releases. You must build it locally using `./scripts/build_frameworks.sh` before working on the project.
 
 ## Making Changes
 
@@ -87,7 +88,7 @@ If you need to update to a new version of ThorVG:
 2. Rebuild locally to test:
    ```bash
    rm -rf ThorVG.xcframework build lib
-   ./build_frameworks.sh
+   ./scripts/build_frameworks.sh
    swift build
    swift test
    # Also test in Xcode with iOS Simulator
@@ -113,7 +114,7 @@ See **[BUILD_SYSTEM.md](BUILD_SYSTEM.md)** for complete details.
 ### ✅ DO Commit (Regular Development)
 - All Swift source code (`swift/`)
 - Tests and resources (`swift-tests/`)
-- Build scripts (`build_frameworks.sh`, `release.sh`)
+- Build scripts (`scripts/`)
 - Documentation (`README.md`, `docs/`)
 - `thorvg/` submodule updates
 - `Package.swift` changes
@@ -183,6 +184,10 @@ To record new snapshots:
 
 > **Note:** This section is for maintainers with push access to the repository.
 
+For the complete release policy including versioning, requirements, and procedures, see **[RELEASE_POLICY.md](RELEASE_POLICY.md)**.
+
+### Quick Release Steps
+
 To create a new release with pre-built binaries:
 
 ```bash
@@ -191,7 +196,7 @@ git checkout main
 git pull
 
 # Run the release script (e.g., for version 0.1.0)
-./release.sh 0.1.0
+./scripts/release.sh 0.1.0
 ```
 
 The release script will:
@@ -231,6 +236,7 @@ The XCFramework only exists in the tagged commit, not in the main branch history
 ## Getting Help
 
 - Check [BUILD_SYSTEM.md](BUILD_SYSTEM.md) for build system details
+- Check [RELEASE_POLICY.md](RELEASE_POLICY.md) for release guidelines
 - Review existing issues on GitHub
 - Open a new issue for bugs or feature requests
 - Join the discussion in Pull Requests

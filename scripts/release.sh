@@ -18,8 +18,8 @@ echo ""
 # Check if version argument is provided
 if [ -z "$1" ]; then
     echo -e "${RED}Error: Version number required${NC}"
-    echo -e "${YELLOW}Usage: ./release.sh <version>${NC}"
-    echo -e "${YELLOW}Example: ./release.sh 0.1.0${NC}"
+    echo -e "${YELLOW}Usage: ./scripts/release.sh <version>${NC}"
+    echo -e "${YELLOW}Example: ./scripts/release.sh 0.1.0${NC}"
     exit 1
 fi
 
@@ -56,12 +56,12 @@ fi
 
 # Build the XCFramework
 echo -e "${YELLOW}Step 1/4: Building XCFramework...${NC}"
-if [ ! -f "./build_frameworks.sh" ]; then
-    echo -e "${RED}Error: build_frameworks.sh not found${NC}"
+if [ ! -f "./scripts/build_frameworks.sh" ]; then
+    echo -e "${RED}Error: scripts/build_frameworks.sh not found${NC}"
     exit 1
 fi
 
-./build_frameworks.sh
+./scripts/build_frameworks.sh
 
 # Verify XCFramework was created
 if [ ! -d "ThorVG.xcframework" ]; then

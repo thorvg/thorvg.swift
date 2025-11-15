@@ -232,7 +232,7 @@ git clone --recursive https://github.com/thorvg/thorvg.swift
 cd thorvg.swift
 
 # Build the XCFramework (required for local development)
-./build_frameworks.sh
+./scripts/build_frameworks.sh
 ```
 
 The build script will:
@@ -259,17 +259,17 @@ Maintainers can create releases with pre-built binaries:
 
 ```bash
 # This builds the XCFramework and creates a release commit + tag
-./release.sh 0.1.0
+./scripts/release.sh 0.1.0
 ```
 
-See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md#creating-a-release) for complete release instructions.
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md#creating-a-release) for complete release instructions and [docs/RELEASE_POLICY.md](docs/RELEASE_POLICY.md) for the full release policy.
 
 > [!NOTE]
 > The build script uses ThorVG's native Meson build system instead of Swift Package Manager compiling C++ directly.
 > This approach simplifies maintenance and ensures consistent builds across platforms.
 
 > [!TIP]
-> If you're on an Intel Mac and want x86_64 simulator support, you can modify `build_frameworks.sh` to include both architectures for the simulator. By default, only arm64 is built for simulator (Intel Macs can use it via Rosetta 2).
+> If you're on an Intel Mac and want x86_64 simulator support, you can modify `scripts/build_frameworks.sh` to include both architectures for the simulator. By default, only arm64 is built for simulator (Intel Macs can use it via Rosetta 2).
 
 ## Contributing
 
@@ -283,5 +283,7 @@ Contributions are welcome! See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 ### Additional Documentation
 
 - [Build System](docs/BUILD_SYSTEM.md) - Comprehensive guide to how ThorVGSwift builds and packages ThorVG, including cross-compilation details, build options, and troubleshooting
+- [Release Policy](docs/RELEASE_POLICY.md) - Versioning, release cadence, and procedures for maintainers
+- [Changelog](docs/CHANGELOG.md) - History of changes and releases
 
 Feel free to open an issue or submit a pull request!

@@ -94,40 +94,62 @@ echo ""
 
 # Create annotated tag
 echo -e "${YELLOW}Step 3/4: Creating git tag...${NC}"
-git tag -a "$TAG_NAME" -m "Release ${VERSION}
 
-This release includes:
-- Pre-built ThorVG XCFramework
-- Swift wrapper for ThorVG
-- Support for iOS 13.0+ and macOS 10.15+
+# Create tag message with link to release notes
+TAG_MESSAGE="Release ${VERSION}
 
-To use this release, add to your Package.swift:
+See the full release notes and changelog at:
+https://github.com/thorvg/thorvg.swift/releases/tag/${TAG_NAME}
+
+Installation:
+Add to your Package.swift:
 .package(url: \"https://github.com/thorvg/thorvg.swift\", from: \"${VERSION}\")
 "
+
+git tag -a "$TAG_NAME" -m "$TAG_MESSAGE"
 
 echo -e "${GREEN}✓ Tag ${TAG_NAME} created${NC}"
 echo ""
 
-# Instructions for pushing
+# Instructions for next steps
 echo -e "${YELLOW}Step 4/4: Next steps${NC}"
 echo ""
-echo -e "${GREEN}Release prepared successfully! 🎉${NC}"
+echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║  Release ${TAG_NAME} prepared successfully! 🎉                    ║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "${BLUE}To publish this release:${NC}"
-echo -e "  1. Push the tag to GitHub:"
-echo -e "     ${YELLOW}git push origin ${TAG_NAME}${NC}"
+echo -e "${RED}⚠️  IMPORTANT: You must push the tag to GitHub to complete the release!${NC}"
 echo ""
-echo -e "  2. Create a GitHub release from the tag:"
-echo -e "     ${YELLOW}https://github.com/thorvg/thorvg.swift/releases/new?tag=${TAG_NAME}${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}Step 1: Push the tag to GitHub${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "  3. In the release notes, describe the changes and features"
+echo -e "  ${YELLOW}git push origin ${TAG_NAME}${NC}"
 echo ""
-echo -e "${BLUE}To undo this release (if needed):${NC}"
-echo -e "  ${YELLOW}git tag -d ${TAG_NAME}${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}Step 2: Create GitHub release${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "  Open: ${YELLOW}https://github.com/thorvg/thorvg.swift/releases/new?tag=${TAG_NAME}${NC}"
+echo ""
+echo -e "  Title: ${YELLOW}ThorVGSwift ${TAG_NAME} - [Your Release Title]${NC}"
+echo -e "  Description: Copy from ${YELLOW}RELEASE_NOTES_GITHUB_v${VERSION}.md${NC} (if it exists)"
+echo ""
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}Step 3: Clean up your local environment${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "  After creating the GitHub release, remove the XCFramework from your working tree:"
+echo ""
 echo -e "  ${YELLOW}git reset --hard HEAD~1${NC}"
 echo ""
-echo -e "${BLUE}Note:${NC} The XCFramework will only exist in the tagged commit."
-echo -e "After pushing the tag, you can clean it from your working directory:"
-echo -e "  ${YELLOW}git reset --hard HEAD~1${NC} (moves back before the release commit)"
+echo -e "  This keeps your main branch lightweight (XCFramework only exists in the tag)."
+echo ""
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}To undo this release (before pushing):${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "  ${YELLOW}git tag -d ${TAG_NAME}${NC}              # Delete local tag"
+echo -e "  ${YELLOW}git reset --hard HEAD~1${NC}        # Remove release commit"
 echo ""
 

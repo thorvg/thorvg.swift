@@ -1,4 +1,4 @@
 [submodule "thorvg"]
 	path = thorvg
-	url = git@github.com:thorvg/thorvg.git
-	branch = v0.14.x
+	url = https://github.com/thorvg/thorvg.git
+	branch = v1.0-pre32

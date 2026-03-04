@@ -1,5 +1,5 @@
 ## Project Lead
-- Hermet Park <hermetpark@gmail.com>
+- Hermet Park @hermet
 
 ## Maintainer
-- Andy French <andyf@canva.com>
+- Andy French @andyf-canva

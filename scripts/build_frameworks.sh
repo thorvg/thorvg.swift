@@ -61,13 +61,13 @@ MESON_OPTIONS_BASE=(
     -Ddefault_library=static
     -Dloaders=svg,lottie,ttf
     -Dsavers=
-    -Dengines=sw
+    -Dengines=cpu
     -Dbindings=capi
-    -Dexamples=false
     -Dtests=false
     -Dtools=
     -Dlog=false
-    -Dextra=lottie_expressions
+    -Dpartial=false
+    -Dextra=lottie_exp
     -Dbuildtype=release
     -Dstrip=true
 )
@@ -186,11 +186,11 @@ create_framework() {
     if [ ${#ARCHS[@]} -gt 1 ]; then
         local LIB_PATHS=()
         for ARCH in "${ARCHS[@]}"; do
-            LIB_PATHS+=("${BUILD_DIR}/${PLATFORM}-${ARCH}/src/libthorvg.a")
+            LIB_PATHS+=("${BUILD_DIR}/${PLATFORM}-${ARCH}/src/libthorvg-1.a")
         done
         lipo -create "${LIB_PATHS[@]}" -output "$FRAMEWORK_PATH/ThorVG"
     else
-        cp "${BUILD_DIR}/${PLATFORM}-${ARCHS[0]}/src/libthorvg.a" "$FRAMEWORK_PATH/ThorVG"
+        cp "${BUILD_DIR}/${PLATFORM}-${ARCHS[0]}/src/libthorvg-1.a" "$FRAMEWORK_PATH/ThorVG"
     fi
     
     # Copy headers
@@ -267,15 +267,15 @@ mkdir -p "$TEMP_DIR/libs"
 
 # macOS fat library (arm64 + x86_64)
 lipo -create \
-    "${BUILD_DIR}/macosx-arm64/src/libthorvg.a" \
-    "${BUILD_DIR}/macosx-x86_64/src/libthorvg.a" \
+    "${BUILD_DIR}/macosx-arm64/src/libthorvg-1.a" \
+    "${BUILD_DIR}/macosx-x86_64/src/libthorvg-1.a" \
     -output "$TEMP_DIR/libs/libthorvg-macos.a"
 
 # iOS device library (arm64 only)
-cp "${BUILD_DIR}/iphoneos-arm64/src/libthorvg.a" "$TEMP_DIR/libs/libthorvg-ios.a"
+cp "${BUILD_DIR}/iphoneos-arm64/src/libthorvg-1.a" "$TEMP_DIR/libs/libthorvg-ios.a"
 
 # iOS simulator library (arm64 only)
-cp "${BUILD_DIR}/iphonesimulator-arm64/src/libthorvg.a" "$TEMP_DIR/libs/libthorvg-iossimulator.a"
+cp "${BUILD_DIR}/iphonesimulator-arm64/src/libthorvg-1.a" "$TEMP_DIR/libs/libthorvg-iossimulator.a"
 
 # Create XCFramework manually due to xcodebuild limitations
 echo -e "${YELLOW}=== Creating XCFramework manually ===${NC}"
@@ -287,7 +287,7 @@ create_xcframework_slice() {
     local LIB_PATH=$2
     
     mkdir -p "$PLATFORM_DIR/Headers"
-    cp "$LIB_PATH" "$PLATFORM_DIR/libthorvg.a"
+    cp "$LIB_PATH" "$PLATFORM_DIR/libthorvg-1.a"
     cp "$THORVG_DIR/src/bindings/capi/thorvg_capi.h" "$PLATFORM_DIR/Headers/"
     
     # Create module.modulemap
@@ -321,7 +321,7 @@ cat > "$OUTPUT_DIR/Info.plist" << 'EOF'
             <key>LibraryIdentifier</key>
             <string>macos-arm64_x86_64</string>
             <key>LibraryPath</key>
-            <string>libthorvg.a</string>
+            <string>libthorvg-1.a</string>
             <key>HeadersPath</key>
             <string>Headers</string>
             <key>SupportedArchitectures</key>
@@ -336,7 +336,7 @@ cat > "$OUTPUT_DIR/Info.plist" << 'EOF'
             <key>LibraryIdentifier</key>
             <string>ios-arm64</string>
             <key>LibraryPath</key>
-            <string>libthorvg.a</string>
+            <string>libthorvg-1.a</string>
             <key>HeadersPath</key>
             <string>Headers</string>
             <key>SupportedArchitectures</key>
@@ -350,7 +350,7 @@ cat > "$OUTPUT_DIR/Info.plist" << 'EOF'
             <key>LibraryIdentifier</key>
             <string>ios-arm64_x86_64-simulator</string>
             <key>LibraryPath</key>
-            <string>libthorvg.a</string>
+            <string>libthorvg-1.a</string>
             <key>HeadersPath</key>
             <string>Headers</string>
             <key>SupportedArchitectures</key>
@@ -377,9 +377,9 @@ echo -e "${GREEN}XCFramework created manually at $OUTPUT_DIR${NC}"
 echo -e "${YELLOW}=== Creating standalone library for macOS ===${NC}"
 mkdir -p "${LIB_DIR}/include"
 lipo -create \
-    "${BUILD_DIR}/macosx-arm64/src/libthorvg.a" \
-    "${BUILD_DIR}/macosx-x86_64/src/libthorvg.a" \
-    -output "${LIB_DIR}/libthorvg.a"
+    "${BUILD_DIR}/macosx-arm64/src/libthorvg-1.a" \
+    "${BUILD_DIR}/macosx-x86_64/src/libthorvg-1.a" \
+    -output "${LIB_DIR}/libthorvg-1.a"
 cp "$THORVG_DIR/src/bindings/capi/thorvg_capi.h" "${LIB_DIR}/include/"
 cat > "${LIB_DIR}/include/module.modulemap" << EOF
 module CThorVG {
@@ -394,5 +394,5 @@ rm -rf "$TEMP_DIR"
 
 echo -e "${GREEN}Build complete! 🎉${NC}"
 echo -e "${GREEN}XCFramework: ${OUTPUT_DIR}${NC}"
-echo -e "${GREEN}Standalone macOS lib: ${LIB_DIR}/libthorvg.a${NC}"
+echo -e "${GREEN}Standalone macOS lib: ${LIB_DIR}/libthorvg-1.a${NC}"
 

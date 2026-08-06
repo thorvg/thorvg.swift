@@ -34,7 +34,7 @@ This directory contains build and release automation scripts for ThorVGSwift.
 
 **Outputs**:
 - `ThorVG.xcframework/` - Multi-platform XCFramework (gitignored)
-- `lib/libthorvg.a` - Standalone macOS library (gitignored)
+- `lib/libthorvg-1.a` - Standalone macOS library (gitignored)
 - `build/` - Intermediate build artifacts (gitignored)
 
 ---
@@ -127,4 +127,3 @@ When modifying these scripts:
 - [Build System Documentation](../docs/BUILD_SYSTEM.md)
 - [Release Policy](../docs/RELEASE_POLICY.md)
 - [Contributing Guide](../docs/CONTRIBUTING.md)
-

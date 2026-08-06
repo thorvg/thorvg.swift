@@ -8,6 +8,22 @@ No unreleased changes yet.
 
 ---
 
+## [0.2.0] - 2026-08-06
+
+### Changed
+- **ThorVG Upgrade**: Upgraded the underlying ThorVG engine from v1.0-pre32 to [v1.1.0](https://github.com/thorvg/thorvg/releases/tag/v1.1.0)
+- Updated snapshot tests to match v1.1.0 rendering output
+- Updated build scripts for ThorVG v1.1.0
+
+---
+
+## [0.1.2] - 2025-12-10
+
+### Fixed
+- Updated the ThorVG submodule to use an HTTPS URL and pinned it to the v1.0-pre32 tag
+
+---
+
 ## [0.1.1] - 2025-11-20
 
 ### Fixed
@@ -68,7 +84,9 @@ No unreleased changes yet.
 
 -->
 
-[Unreleased]: https://github.com/thorvg/thorvg.swift/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/thorvg/thorvg.swift/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/thorvg/thorvg.swift/releases/tag/v0.2.0
+[0.1.2]: https://github.com/thorvg/thorvg.swift/releases/tag/v0.1.2
 [0.1.1]: https://github.com/thorvg/thorvg.swift/releases/tag/v0.1.1
 [0.1.0]: https://github.com/thorvg/thorvg.swift/releases/tag/v0.1.0
 

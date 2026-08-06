@@ -11,7 +11,7 @@
 
 ThorVG for Swift is a lightweight wrapper around the [ThorVG C++ API](https://github.com/thorvg/thorvg), providing native support for vector graphics in Swift applications. This package currently only supports rendering Lottie animations and is actively evolving to include more features.
 
-**ThorVG Version:** `v0.14.7` (commit `e3a6bf`)   
+**ThorVG Version:** `v1.1.0` (commit `1b3aed2`)   
 **Supported Platforms:** iOS 13.0+, macOS 10.15+
 
 ## Contents
@@ -246,7 +246,7 @@ The build script will:
 
 Build outputs:
 - **`ThorVG.xcframework/`** - Multi-platform framework (gitignored, only in releases)
-- **`lib/libthorvg.a`** - Standalone macOS library (gitignored)
+- **`lib/libthorvg-1.a`** - Standalone macOS library (gitignored)
 
 #### Building the Swift Package
 Once the XCFramework is built, you can build and test the Swift package:

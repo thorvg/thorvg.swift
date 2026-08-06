@@ -42,7 +42,7 @@ class Canvas {
 
     /// Pushes a picture onto the the canvas.
     func push(picture: Picture) {
-        tvg_canvas_push(pointer, picture.pointer)
+        tvg_canvas_add(pointer, picture.pointer)
     }
 
     /// Updates the canvas.

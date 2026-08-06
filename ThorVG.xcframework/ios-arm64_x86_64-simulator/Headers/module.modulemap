@@ -1,0 +1,4 @@
+module ThorVG {
+    header "thorvg_capi.h"
+    export *
+}

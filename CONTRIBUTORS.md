@@ -3,3 +3,6 @@
 
 ## Maintainer
 - Andy French @andyf-canva
+
+## Core Contributor
+- SoonGeon Noh @Nor-s

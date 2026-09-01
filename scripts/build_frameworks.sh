@@ -64,7 +64,6 @@ MESON_OPTIONS_BASE=(
     -Dengines=cpu
     -Dbindings=capi
     -Dtests=false
-    -Dtools=
     -Dlog=false
     -Dpartial=false
     -Dextra=lottie_exp
